@@ -139,8 +139,8 @@
         <label class="field">文件 B（可多 Sheet，支持 .xlsx / .xls）
           <input type="file" id="fileB" accept=".xlsx,.xls">
         </label>
-        <label class="field full">指令号列标题关键词
-          <input type="text" id="keywords" value="指令号">
+        <label class="field full">指令号列标题关键词（逗号分隔，精确匹配优先；可多个叫法）
+          <input type="text" id="keywords" value="指令号,命令号,指令编号">
           <span class="hint">识别规则：在前 N 行里找标题，与关键词“完全相同”优先于“开头相同”，开头相同优先于“包含”。</span>
         </label>
         <label class="field">表头扫描行数
@@ -487,22 +487,36 @@
     });
   }
 
-  // 读取文件为 ExcelJS 工作簿；.xls 走 SheetJS 转换
-  async function readWorkbook(file) {
+  // 用 SheetJS 以兼容模式读取并转换为 ExcelJS 工作簿（不保留样式/合并/列宽，但数据、格式值都在）
+  function convertWithSheetJS(data, note) {
+    const wbOld = XLSX.read(data, { type: 'array', cellDates: true });
     const wb = new ExcelJS.Workbook();
-    if (/\.xls$/i.test(file.name) && !/\.xlsx$/i.test(file.name)) {
-      const data = await file.arrayBuffer();
-      const wbOld = XLSX.read(data, { type: 'array' });
-      wbOld.SheetNames.forEach(name => {
-        const ws = wb.addWorksheet(name);
-        const rows = XLSX.utils.sheet_to_json(wbOld.Sheets[name], { header: 1, defval: null, raw: true });
-        rows.forEach(r => ws.addRow(r));
-      });
-      wb.__convertedFromXls = true;
-      return wb;
-    }
-    await wb.xlsx.load(await file.arrayBuffer());
+    wbOld.SheetNames.forEach(name => {
+      const ws = wb.addWorksheet(name);
+      const rows = XLSX.utils.sheet_to_json(wbOld.Sheets[name], { header: 1, defval: null, raw: true });
+      rows.forEach(r => ws.addRow(r));
+    });
+    wb.__converted = true;   // 标记：兼容模式读取，导出时存为 .xlsx
+    wb.__note = note;        // 记录为何走兼容模式，供日志提示
     return wb;
+  }
+
+  // 读取文件为 ExcelJS 工作簿：
+  //   .xls 旧格式 / 标准解析失败的文件 → 自动兜底换 SheetJS 兼容模式读取
+  //   （部分系统导出的 xlsx 内部 XML 非标准，exceljs 解析会报 reading 'sheets' 之类错误）
+  async function readWorkbook(file) {
+    const data = await file.arrayBuffer();
+    if (!data || !data.byteLength) throw new Error('文件内容为空（0 字节），可能是下载或传输不完整，请重新获取该文件');
+    if (/\.xls$/i.test(file.name) && !/\.xlsx$/i.test(file.name)) {
+      return convertWithSheetJS(data, '文件为 .xls 旧格式，已通过兼容模式读取（原有样式不保留，导出时将存为 .xlsx）');
+    }
+    try {
+      const wb = new ExcelJS.Workbook();
+      await wb.xlsx.load(data);
+      return wb;
+    } catch (err) {
+      return convertWithSheetJS(data, '标准解析失败（' + (err && err.message ? err.message : err) + '），已改用兼容模式读取（原有样式不保留，导出时将存为 .xlsx）');
+    }
   }
 
   // 导出前清除所有条件格式：旧文件里的重复值高亮等规则会和本次高亮叠加显示，造成"乱涂色"观感
@@ -677,11 +691,11 @@
     try {
       log('正在读取文件 A …');
       const wbA = await readWorkbook(fileA);
-      if (wbA.__convertedFromXls) log('  提示：文件 A 为 .xls 旧格式，已转换读取（原有样式不保留，导出时将存为 .xlsx）');
+      if (wbA.__converted) log('  提示：' + wbA.__note);
 
       log('正在读取文件 B …');
       const wbB = await readWorkbook(fileB);
-      if (wbB.__convertedFromXls) log('  提示：文件 B 为 .xls 旧格式，已转换读取（原有样式不保留，导出时将存为 .xlsx）');
+      if (wbB.__converted) log('  提示：' + wbB.__note);
 
       log('正在识别各 Sheet 的指令号列 …');
       log('文件 A：');
@@ -759,7 +773,7 @@
       const dl = document.getElementById('downloads');
       dl.innerHTML = '';
       const mk = (wb, file, tag) => {
-        const ext = wb.__convertedFromXls ? '.xlsx' : (file.name.match(/\.xlsx?$/i) || ['.xlsx'])[0];
+        const ext = wb.__converted ? '.xlsx' : (file.name.match(/\.xlsx?$/i) || ['.xlsx'])[0];
         const base = file.name.replace(/\.xlsx?$/i, '');
         const a = document.createElement('a');
         a.href = '#'; a.textContent = `下载${tag}（已高亮）`;
