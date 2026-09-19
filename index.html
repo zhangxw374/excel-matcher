@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Excel 指令号匹配核对工具</title>
+  <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+  <style>
+    :root {
+      --bg: #f5f5f3;
+      --panel: #ffffff;
+      --line: #e2e2de;
+      --ink: #1a1a1a;
+      --ink-2: #6b6b66;
+      --accent: #16634d;
+      --accent-hover: #0f4d3b;
+      --warn-bg: #fdf6e3;
+      --warn-line: #e8d9a0;
+      --mono: "SF Mono", Consolas, "Courier New", monospace;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; background: var(--bg); color: var(--ink);
+      font-family: -apple-system, "PingFang SC", "Microsoft YaHei", "Segoe UI", sans-serif;
+      font-size: 14px; line-height: 1.6;
+    }
+    header {
+      padding: 22px 28px 14px;
+      border-bottom: 1px solid var(--line);
+      background: var(--panel);
+    }
+    header h1 { margin: 0 0 4px; font-size: 20px; font-weight: 700; letter-spacing: 0.02em; }
+    header p { margin: 0; color: var(--ink-2); font-size: 13px; }
+    main { max-width: 1180px; margin: 0 auto; padding: 20px 28px 60px; }
+
+    section.panel {
+      background: var(--panel); border: 1px solid var(--line);
+      border-radius: 6px; padding: 16px 20px; margin-bottom: 16px;
+    }
+    section.panel h2 {
+      margin: 0 0 12px; font-size: 13px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-2);
+    }
+
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 28px; }
+    .grid .full { grid-column: 1 / -1; }
+    label.field { display: block; font-size: 13px; color: var(--ink); }
+    label.field .hint { display: block; color: var(--ink-2); font-size: 12px; margin-top: 1px; }
+    input[type="file"], input[type="text"], input[type="number"], select {
+      width: 100%; margin-top: 4px; padding: 7px 9px;
+      border: 1px solid var(--line); border-radius: 4px;
+      font: inherit; background: #fff; color: var(--ink);
+    }
+    input[type="file"] { padding: 5px 7px; }
+    input[type="color"] { width: 44px; height: 32px; padding: 2px; border: 1px solid var(--line); border-radius: 4px; vertical-align: middle; }
+    .row-inline { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .row-inline > * { margin-top: 0 !important; width: auto !important; }
+    .checkbox-line { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+    .checkbox-line input { width: auto; }
+
+    details.advanced { margin-top: 10px; font-size: 13px; }
+    details.advanced summary { cursor: pointer; color: var(--ink-2); }
+    details.advanced[open] summary { margin-bottom: 8px; }
+
+    button.run {
+      display: inline-block; padding: 10px 26px; font-size: 15px; font-weight: 600;
+      color: #fff; background: var(--accent); border: none; border-radius: 5px;
+      cursor: pointer; letter-spacing: 0.03em;
+    }
+    button.run:hover:not(:disabled) { background: var(--accent-hover); }
+    button.run:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    #stats { display: none; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
+    #stats.on { display: grid; }
+    .stat { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 12px 16px; }
+    .stat .num { font-size: 24px; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .stat .cap { font-size: 12px; color: var(--ink-2); }
+
+    #log {
+      background: #111312; color: #d7dbd6; border-radius: 6px;
+      padding: 12px 14px; max-height: 380px; overflow-y: auto;
+      white-space: pre-wrap; word-break: break-all;
+      font-family: var(--mono); font-size: 12.5px; line-height: 1.55;
+    }
+    #log .t { color: #8a918b; }
+
+    #summary-wrap { display: none; }
+    #summary-wrap.on { display: block; }
+    #summary-tools { display: flex; gap: 10px; align-items: center; margin: 8px 0; }
+    #summary-tools input { flex: 0 1 320px; }
+    #summary-tools .count { color: var(--ink-2); font-size: 12px; margin-left: auto; }
+    .table-scroll { max-height: 460px; overflow: auto; border: 1px solid var(--line); border-radius: 4px; }
+    table.sum { border-collapse: collapse; width: 100%; font-size: 13px; }
+    table.sum th, table.sum td {
+      border-bottom: 1px solid var(--line); padding: 6px 10px;
+      text-align: left; white-space: nowrap; max-width: 340px; overflow: hidden; text-overflow: ellipsis;
+    }
+    table.sum thead th {
+      position: sticky; top: 0; background: #efefec; z-index: 1;
+      font-size: 12px; color: var(--ink-2); font-weight: 600;
+    }
+    table.sum tbody tr:hover { background: #f4f7f5; }
+    table.sum td.id { font-family: var(--mono); font-size: 12.5px; }
+    table.sum td.c { text-align: right; font-variant-numeric: tabular-nums; }
+
+    #legend { font-size: 12.5px; }
+    .legend-item { display: inline-flex; align-items: center; margin: 2px 12px 2px 0; font-family: var(--mono); font-size: 12px; }
+    .legend-swatch { display: inline-block; width: 14px; height: 14px; border: 1px solid rgba(0,0,0,0.25); margin-right: 5px; }
+
+    #downloads a {
+      display: inline-block; margin: 6px 10px 0 0; padding: 9px 18px;
+      background: var(--accent); color: #fff; text-decoration: none; border-radius: 5px; font-size: 14px;
+    }
+    #downloads a:hover { background: var(--accent-hover); }
+    #downloads a.secondary { background: #fff; color: var(--ink); border: 1px solid var(--line); }
+    #downloads a.secondary:hover { border-color: var(--ink-2); }
+
+    .note {
+      background: var(--warn-bg); border: 1px solid var(--warn-line);
+      border-radius: 4px; padding: 8px 12px; font-size: 12.5px; color: #6a5d21; margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Excel 指令号匹配核对工具</h1>
+    <p>对比两个 Excel 文件（均支持多 Sheet），自动识别“指令号”列，忽略空格 / 全角半角 / 隐藏字符差异后做匹配，只给指令号列上色；同一指令号颜色固定不变，合并单元格按主单元格整体涂色，并在页面输出完整匹配清单。</p>
+  </header>
+  <main>
+
+    <section class="panel">
+      <h2>① 选择文件与匹配设置</h2>
+      <div class="grid">
+        <label class="field">文件 A（可多 Sheet，支持 .xlsx / .xls）
+          <input type="file" id="fileA" accept=".xlsx,.xls">
+        </label>
+        <label class="field">文件 B（可多 Sheet，支持 .xlsx / .xls）
+          <input type="file" id="fileB" accept=".xlsx,.xls">
+        </label>
+        <label class="field full">指令号列标题关键词
+          <input type="text" id="keywords" value="指令号">
+          <span class="hint">识别规则：在前 N 行里找标题，与关键词“完全相同”优先于“开头相同”，开头相同优先于“包含”。</span>
+        </label>
+        <label class="field">表头扫描行数
+          <input type="number" id="scanRows" value="10" min="1" max="50" style="width:90px">
+        </label>
+        <label class="field">高亮颜色模式
+          <select id="colorMode" style="width:220px">
+            <option value="multi">每个指令号不同颜色</option>
+            <option value="uniform">全部匹配统一颜色</option>
+          </select>
+        </label>
+        <label class="field full row-inline" id="uniformColorRow" style="display:none">
+          统一填充色：<input type="color" id="uniformColor" value="#ffe08a">
+          <span class="hint">匹配数量很大时，统一颜色 + 页面汇总表比“千色变”更清晰。</span>
+        </label>
+        <label class="field full checkbox-line">
+          <input type="checkbox" id="appendSummary" checked>
+          在两个导出文件中各追加一个「匹配汇总」Sheet（列出每个匹配指令号的出现次数和位置，不影响原有 Sheet）
+        </label>
+        <label class="field full checkbox-line">
+          <input type="checkbox" id="stripCF" checked>
+          清除原文件中的条件格式（强烈建议保留勾选：旧文件里可能藏着“重复值高亮”等规则，不清除会和本次高亮叠在一起，看起来像乱涂色）
+        </label>
+      </div>
+
+      <details class="advanced">
+        <summary>高级：手动指定某 Sheet 的指令号列（防止自动识别判错列）</summary>
+        <label class="field">格式：<code>Sheet名=C</code>，多条用分号分隔，例如 <code>数据=C; 汇总=D</code>（对文件 A、B 同时生效，Sheet 名不区分大小写）
+          <input type="text" id="colOverride" placeholder="留空 = 全部自动识别">
+        </label>
+      </details>
+
+      <div style="margin-top:14px">
+        <button class="run" id="runBtn" onclick="process()">开始匹配并高亮</button>
+      </div>
+    </section>
+
+    <div id="stats">
+      <div class="stat"><div class="num" id="stMatched">0</div><div class="cap">匹配到的指令号</div></div>
+      <div class="stat"><div class="num" id="stOnlyA">0</div><div class="cap">仅文件 A 有</div></div>
+      <div class="stat"><div class="num" id="stOnlyB">0</div><div class="cap">仅文件 B 有</div></div>
+      <div class="stat"><div class="num" id="stCells">0</div><div class="cap">高亮单元格（A + B）</div></div>
+    </div>
+
+    <section class="panel" id="summary-wrap">
+      <h2>② 匹配结果总览（点列头可排序，可筛选）</h2>
+      <div id="summary-tools">
+        <input type="text" id="sumFilter" placeholder="按指令号筛选…" oninput="renderSummaryTable()">
+        <a href="#" id="csvMatched" download="匹配汇总.csv">下载 匹配清单 CSV</a>
+        <a href="#" id="csvOnlyA" download="仅文件A有.csv">仅 A 有 CSV</a>
+        <a href="#" id="csvOnlyB" download="仅文件B有.csv">仅 B 有 CSV</a>
+        <span class="count" id="sumCount"></span>
+      </div>
+      <div class="table-scroll">
+        <table class="sum">
+          <thead>
+            <tr>
+              <th onclick="sortSummary('id')">指令号 <span id="sortMark-id"></span></th>
+              <th onclick="sortSummary('countA')">A 出现次数 <span id="sortMark-countA"></span></th>
+              <th onclick="sortSummary('countB')">B 出现次数 <span id="sortMark-countB"></span></th>
+              <th>A 位置（Sheet!行号）</th>
+              <th>B 位置（Sheet!行号）</th>
+            </tr>
+          </thead>
+          <tbody id="sumBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>③ 处理日志</h2>
+      <div id="log"></div>
+    </section>
+
+    <section class="panel" id="legend-panel" style="display:none">
+      <h2>④ 颜色图例</h2>
+      <div id="legend"></div>
+    </section>
+
+    <section class="panel" id="dl-panel" style="display:none">
+      <h2>⑤ 下载结果</h2>
+      <div id="downloads"></div>
+      <div class="note">提示：.xls 旧格式文件读出后重新保存为 .xlsx（原格式与样式不保留）；.xlsx 文件原有样式和公式会保留，仅指令号列的匹配单元格被填充颜色；勾选“清除条件格式”后原文件的重复值高亮等规则会被移除，不会与本次高亮混显。</div>
+    </section>
+
+  </main>
+
+  <script>
+  // ==================== CORE-START ====================
+  // 以下为纯逻辑，与页面 DOM 无关
+
+  // 读取单元格文本：兼容富文本 / 公式 / 日期 / 数字
+  function getCellText(cell) {
+    if (!cell) return '';
+    let v = cell.value;
+    if (v === null || v === undefined) return '';
+    if (v instanceof Date) {
+      const y = v.getFullYear(), m = String(v.getMonth() + 1).padStart(2, '0'), d = String(v.getDate()).padStart(2, '0');
+      return `${y}-${m}-${d}`;
+    }
+    if (typeof v === 'number') return Number.isInteger(v) ? String(v) : String(v);
+    if (typeof v === 'object') {
+      if (v.richText) return v.richText.map(t => t.text).join('');
+      if (v.text !== undefined) return String(v.text);
+      if (v.result !== undefined && v.result !== null) return String(v.result);
+      return String(v);
+    }
+    return String(v);
+  }
+
+  // 指令号标准化：去掉所有空白与隐藏字符、全角转半角、统一各类横杠与引号、大写
+  const INVISIBLES = /[\s\u00AD\u200B-\u200F\u2060\uFEFF\u180E\u0009-\u000D\u0085\u2028\u2029]/g; // 含软连字符 U+00AD（不可见）
+  const FULLWIDTH = /[！-～]/g;                 // 全角 ASCII 区 → 半角
+  const DASHES = /[‐‑‒–—―−─━⁃﹘﹣－゠ー︱︲]/g;   // 各类可见横杠 → 半角 -（含 U+2010/2011/2012/2212/2043、日文长音 ー、制表符横线等）
+  const QUOTES = /[“”«»]/g;                     // 弯引号 → 直引号
+  const APOSTROPHES = /[‘’‛`´]/g;               // 弯撇号 → 直撇号
+  function normalizeOrder(raw) {
+    if (raw === null || raw === undefined) return '';
+    return String(raw)
+      .replace(INVISIBLES, '')
+      .replace(FULLWIDTH, ch => String.fromCharCode(ch.charCodeAt(0) - 0xFEE0))
+      .replace(DASHES, '-')
+      .replace(QUOTES, '"')
+      .replace(APOSTROPHES, "'")
+      .toUpperCase();
+  }
+
+  // 在前 maxScanRows 行里为某个 Sheet 找指令号列，带优先级打分
+  function findOrderColumn(sheet, keywords, maxScanRows) {
+    const rowLimit = Math.min(sheet.rowCount || 0, maxScanRows || 10);
+    let best = null;
+    for (let r = 1; r <= rowLimit; r++) {
+      const row = sheet.getRow(r);
+      if (!row) continue;
+      row.eachCell({ includeEmpty: false }, (cell, colNumber) => {
+        const text = getCellText(cell).trim();
+        if (!text) return;
+        const lower = text.toLowerCase();
+        let score = 0;
+        for (const k of keywords) {
+          const kl = k.toLowerCase();
+          if (lower === kl) score = Math.max(score, 100);
+          else if (lower.startsWith(kl)) score = Math.max(score, 70);
+          else if (lower.includes(kl)) score = Math.max(score, 40);
+        }
+        if (score === 0) return;
+        score += (maxScanRows - r) * 0.1; // 位置越靠上的行略微优先
+        if (!best || score > best.score) {
+          best = { col: colNumber, headerRow: r, score: Math.round(score), matched: text };
+        }
+      });
+    }
+    return best;
+  }
+
+  // ---------- 合并单元格处理 ----------
+  // exceljs 读取合并区从单元格时会返回主单元格的值，若不去重会导致：
+  //   计数翻倍、同一合并区被重复涂色、从单元格涂了色但 Excel 里不显示（Excel 只显示主单元格样式）
+  const mergeCache = new WeakMap();
+  function colToNum(letters) {
+    let n = 0;
+    for (const ch of letters.toUpperCase()) n = n * 26 + (ch.charCodeAt(0) - 64);
+    return n;
+  }
+  function getMergeResolver(sheet) {
+    let mr = mergeCache.get(sheet);
+    if (mr) return mr;
+    mr = { masterOf: new Map(), rangeOf: new Map() }; // 'r:c' -> {row,col}; 'r:c'(主) -> {r1,c1,r2,c2}
+    const merges = (sheet.model && sheet.model.merges) || [];
+    merges.forEach(range => {
+      const m = String(range).match(/^([A-Za-z]+)(\d+):([A-Za-z]+)(\d+)$/);
+      if (!m) return;
+      const c1 = colToNum(m[1]), r1 = parseInt(m[2], 10), c2 = colToNum(m[3]), r2 = parseInt(m[4], 10);
+      const rg = { r1, c1, r2, c2 };
+      mr.rangeOf.set(r1 + ':' + c1, rg);
+      for (let r = r1; r <= r2; r++) for (let c = c1; c <= c2; c++) mr.masterOf.set(r + ':' + c, { row: r1, col: c1 });
+    });
+    mergeCache.set(sheet, mr);
+    return mr;
+  }
+
+  // 收集一个工作簿所有命中列里的指令号：norm -> { raw, count, locs: [] }
+  const MAX_LOCS = 1000; // 单个指令号最多记录的明细位置数（防止极端数据撑爆内存）
+  function collectOrders(workbook, colMap) {
+    const map = new Map();
+    workbook.worksheets.forEach(sheet => {
+      const found = colMap.get(sheet.name);
+      if (!found) return;
+      const { col, headerRow } = found;
+      const mr = getMergeResolver(sheet);
+      const seen = new Set();
+      for (let r = headerRow + 1; r <= (sheet.rowCount || 0); r++) {
+        let raw, locRow;
+        const master = mr.masterOf.get(r + ':' + col);
+        if (master && !(master.row === r && master.col === col)) {
+          // 合并区从单元格：主单元格在指令号列内 → 等主单元格那行统计；在其它列 → 按主单元格去重统计一次
+          if (master.col === col && master.row > headerRow) continue;
+          const mk = master.row + ':' + master.col;
+          if (seen.has(mk)) continue;
+          seen.add(mk);
+          raw = getCellText(sheet.getRow(master.row).getCell(master.col));
+          locRow = master.row;
+        } else {
+          raw = getCellText(sheet.getRow(r).getCell(col));
+          locRow = r;
+        }
+        const norm = normalizeOrder(raw);
+        if (!norm) continue;
+        let entry = map.get(norm);
+        if (!entry) { entry = { raw: String(raw).trim(), count: 0, locs: [] }; map.set(norm, entry); }
+        entry.count++;
+        if (entry.locs.length < MAX_LOCS) entry.locs.push(`${sheet.name}!R${locRow}`);
+      }
+    });
+    return map;
+  }
+
+  // 对两份收集结果做交集 / 差集
+  function diffOrders(mapA, mapB) {
+    const matched = [], onlyA = [], onlyB = [];
+    for (const [id, ea] of mapA) {
+      const eb = mapB.get(id);
+      if (eb) matched.push({ id, raw: ea.raw || eb.raw, countA: ea.count, countB: eb.count, locA: ea.locs, locB: eb.locs });
+      else onlyA.push({ id, raw: ea.raw, countA: ea.count, countB: 0, locA: ea.locs, locB: [] });
+    }
+    for (const [id, eb] of mapB) {
+      if (!mapA.has(id)) onlyB.push({ id, raw: eb.raw, countA: 0, countB: eb.count, locA: [], locB: eb.locs });
+    }
+    matched.sort((x, y) => x.id.localeCompare(y.id, 'zh-Hans-CN', { numeric: true }));
+    onlyA.sort((x, y) => x.id.localeCompare(y.id, 'zh-Hans-CN', { numeric: true }));
+    onlyB.sort((x, y) => x.id.localeCompare(y.id, 'zh-Hans-CN', { numeric: true }));
+    return { matched, onlyA, onlyB };
+  }
+
+  function hslToArgb(h, s, l) {
+    const c = (1 - Math.abs(2 * l - 1)) * s;
+    const x = c * (1 - Math.abs((h / 60) % 2 - 1));
+    const m = l - c / 2;
+    let r, g, b;
+    if (h < 60) [r, g, b] = [c, x, 0];
+    else if (h < 120) [r, g, b] = [x, c, 0];
+    else if (h < 180) [r, g, b] = [0, c, x];
+    else if (h < 240) [r, g, b] = [0, x, c];
+    else if (h < 300) [r, g, b] = [x, 0, c];
+    else [r, g, b] = [c, 0, x];
+    const toHex = v => Math.round((v + m) * 255).toString(16).padStart(2, '0').toUpperCase();
+    return 'FF' + toHex(r) + toHex(g) + toHex(b);
+  }
+
+  // 字符串散列（FNV-1a）：颜色由指令号本身决定 → 同一指令号任何时候都是同一颜色，不同指令号颜色错开
+  function hashStr(s) {
+    let h = 2166136261;
+    for (let i = 0; i < s.length; i++) {
+      h ^= s.codePointAt(i);
+      h = Math.imul(h, 16777619);
+    }
+    return h >>> 0;
+  }
+
+  // mode: 'multi' 每个指令号按散列取色；'uniform' 统一颜色
+  function buildColorMap(matchedIds, mode, uniformHex) {
+    const colorMap = new Map();
+    if (mode === 'uniform') {
+      const hex = (uniformHex || '#ffe08a').replace('#', '').toUpperCase();
+      const argb = 'FF' + hex;
+      matchedIds.forEach(id => colorMap.set(id, argb));
+      return colorMap;
+    }
+    matchedIds.forEach(id => {
+      const h = hashStr(id);
+      const hue = (h * 137.508) % 360;           // 黄金角展开，散列相近也尽量错开
+      const light = 0.82 - ((h >>> 9) % 4) * 0.08;
+      colorMap.set(id, hslToArgb(hue, 0.55, light));
+    });
+    return colorMap;
+  }
+
+  // 只给指令号那一列的匹配单元格上色（合并区按主单元格去重、整区上色），返回高亮明细
+  function highlightWorkbook(workbook, colMap, colorMap, label) {
+    const details = [];
+    workbook.worksheets.forEach(sheet => {
+      const found = colMap.get(sheet.name);
+      if (!found) return;
+      const { col, headerRow } = found;
+      const mr = getMergeResolver(sheet);
+      const done = new Set();
+      // 关键：真实文件里多个单元格常共享同一个 style 对象（exceljs 加载时按样式去重），
+      // 直接 cell.fill = {...} 会改到共享对象，导致一片单元格被误涂。
+      // 必须整体替换 style 引用，绝不修改原对象。
+      const setFill = (cell, argb) => {
+        cell.style = Object.assign({}, cell.style, {
+          fill: { type: 'pattern', pattern: 'solid', fgColor: { argb } }
+        });
+      };
+      const paint = (rowIdx, colIdx, argb) => {
+        const mk = rowIdx + ':' + colIdx;
+        if (done.has(mk)) return false;
+        const rg = mr.rangeOf.get(mk);
+        if (rg) {
+          for (let rr = rg.r1; rr <= rg.r2; rr++) {
+            for (let cc = rg.c1; cc <= rg.c2; cc++) {
+              setFill(sheet.getRow(rr).getCell(cc), argb);
+              done.add(rr + ':' + cc);
+            }
+          }
+        } else {
+          setFill(sheet.getRow(rowIdx).getCell(colIdx), argb);
+          done.add(mk);
+        }
+        return true;
+      };
+      for (let r = headerRow + 1; r <= (sheet.rowCount || 0); r++) {
+        const master = mr.masterOf.get(r + ':' + col);
+        const mrow = master ? master.row : r;
+        const mcol = master ? master.col : col;
+        if (mrow <= headerRow) continue; // 与表头同区合并的怪情况，跳过
+        const norm = normalizeOrder(getCellText(sheet.getRow(mrow).getCell(mcol)));
+        if (norm && colorMap.has(norm)) {
+          if (paint(mrow, mcol, colorMap.get(norm))) {
+            details.push({ label, sheetName: sheet.name, row: mrow, text: norm });
+          }
+        }
+      }
+    });
+    return details;
+  }
+
+  // 在导出文件中追加「匹配汇总」Sheet
+  function appendSummarySheet(workbook, matched, label) {
+    let name = '匹配汇总';
+    let n = 2;
+    while (workbook.getWorksheet(name)) name = '匹配汇总_' + (n++);
+    const ws = workbook.addWorksheet(name);
+    ws.columns = [
+      { header: '指令号', key: 'id', width: 24 },
+      { header: label + '出现次数', key: 'cnt', width: 14 },
+      { header: label + '位置（Sheet!行号）', key: 'loc', width: 80 },
+    ];
+    ws.getRow(1).font = { bold: true };
+    matched.forEach(m => {
+      const locs = m['loc' + (label === '文件A' ? 'A' : 'B')] || [];
+      const shown = locs.slice(0, 30).join(', ') + (locs.length > 30 ? ` 等${locs.length}处` : '');
+      ws.addRow({ id: m.raw, cnt: m['count' + (label === '文件A' ? 'A' : 'B')], loc: shown });
+    });
+  }
+
+  // 读取文件为 ExcelJS 工作簿；.xls 走 SheetJS 转换
+  async function readWorkbook(file) {
+    const wb = new ExcelJS.Workbook();
+    if (/\.xls$/i.test(file.name) && !/\.xlsx$/i.test(file.name)) {
+      const data = await file.arrayBuffer();
+      const wbOld = XLSX.read(data, { type: 'array' });
+      wbOld.SheetNames.forEach(name => {
+        const ws = wb.addWorksheet(name);
+        const rows = XLSX.utils.sheet_to_json(wbOld.Sheets[name], { header: 1, defval: null, raw: true });
+        rows.forEach(r => ws.addRow(r));
+      });
+      wb.__convertedFromXls = true;
+      return wb;
+    }
+    await wb.xlsx.load(await file.arrayBuffer());
+    return wb;
+  }
+
+  // 导出前清除所有条件格式：旧文件里的重复值高亮等规则会和本次高亮叠加显示，造成"乱涂色"观感
+  async function stripConditionalFormatting(buffer) {
+    const zip = await JSZip.loadAsync(buffer);
+    const targets = [];
+    zip.forEach((rel, entry) => {
+      if (/^xl\/worksheets\/sheet\d+\.xml$/.test(entry.name)) targets.push(entry.name);
+    });
+    for (const name of targets) {
+      let xml = await zip.file(name).async('string');
+      if (!/conditionalFormatting/.test(xml)) continue;
+      xml = xml.replace(/<conditionalFormatting\b[^>]*>[\s\S]*?<\/conditionalFormatting>/g, '');
+      xml = xml.replace(/<x14:conditionalFormattings\b[^>]*>[\s\S]*?<\/x14:conditionalFormattings>/g, '');
+      zip.file(name, xml);
+    }
+    return zip.generateAsync({ type: 'arraybuffer' });
+  }
+
+  // 解析手动指定列：输入 "数据=C; 汇总=D" -> Map(小写sheet名 -> 列号)
+  function parseColOverride(str) {
+    const map = new Map();
+    if (!str) return map;
+    str.split(/[;；]/).forEach(part => {
+      const m = part.split('=');
+      if (m.length !== 2) return;
+      const sheet = m[0].trim().toLowerCase();
+      const letters = m[1].trim().toUpperCase();
+      if (!/^[A-Z]{1,3}$/.test(letters)) return;
+      let col = 0;
+      for (const ch of letters) col = col * 26 + (ch.charCodeAt(0) - 64);
+      if (sheet && col > 0) map.set(sheet, col);
+    });
+    return map;
+  }
+
+  // ==================== CORE-END ====================
+
+  // ---------- 页面层 ----------
+  let gMatched = [], gOnlyA = [], gOnlyB = [];   // 供排序 / 筛选 / CSV 使用
+  let gSortKey = 'id', gSortAsc = true;
+
+  function log(msg) {
+    const div = document.getElementById('log');
+    const t = new Date().toTimeString().slice(0, 8);
+    div.innerHTML += `<span class="t">[${t}]</span> ${msg}<br>`;
+    div.scrollTop = div.scrollHeight;
+  }
+
+  function resolveColumns(workbook, keywords, scanRows, override, label) {
+    const map = new Map();
+    workbook.worksheets.forEach(sheet => {
+      const ov = override.get(sheet.name.toLowerCase());
+      if (ov) {
+        map.set(sheet.name, { col: ov, headerRow: 0, score: -1, matched: '(手动指定)' });
+        log(`  ${label} - Sheet "${sheet.name}"：按手动指定取第 ${ov} 列`);
+        return;
+      }
+      const found = findOrderColumn(sheet, keywords, scanRows);
+      if (found) {
+        map.set(sheet.name, found);
+        log(`  ${label} - Sheet "${sheet.name}"：命中列标题 "${found.matched}"（第 ${found.col} 列，表头第 ${found.headerRow} 行，置信分 ${found.score}）`);
+      } else {
+        log(`  ${label} - Sheet "${sheet.name}"：未找到指令号列，跳过该 Sheet`);
+      }
+    });
+    return map;
+  }
+
+  function locText(locs) {
+    if (!locs || !locs.length) return '';
+    const s = locs.slice(0, 30).join(', ');
+    return locs.length > 30 ? s + ` 等${locs.length}处` : s;
+  }
+
+  function sortSummary(key) {
+    if (gSortKey === key) gSortAsc = !gSortAsc; else { gSortKey = key; gSortAsc = true; }
+    renderSummaryTable();
+  }
+
+  function renderSummaryTable() {
+    const body = document.getElementById('sumBody');
+    const filter = normalizeOrder(document.getElementById('sumFilter').value || '');
+    let rows = gMatched.filter(m => !filter || m.id.includes(filter));
+    const dir = gSortAsc ? 1 : -1;
+    rows = rows.slice().sort((a, b) => {
+      let r;
+      if (gSortKey === 'id') r = a.id.localeCompare(b.id, 'zh-Hans-CN', { numeric: true });
+      else r = a[gSortKey] - b[gSortKey];
+      return r * dir || (a.id < b.id ? -1 : 1);
+    });
+    ['id', 'countA', 'countB'].forEach(k => {
+      document.getElementById('sortMark-' + k).textContent = k === gSortKey ? (gSortAsc ? '↑' : '↓') : '';
+    });
+    const MAX_RENDER = 5000;
+    let html = '';
+    for (let i = 0; i < Math.min(rows.length, MAX_RENDER); i++) {
+      const m = rows[i];
+      html += `<tr><td class="id" title="${escapeHtml(m.raw)}">${escapeHtml(m.id)}</td>` +
+        `<td class="c">${m.countA}</td><td class="c">${m.countB}</td>` +
+        `<td title="${escapeHtml(locText(m.locA))}">${escapeHtml(locText(m.locA))}</td>` +
+        `<td title="${escapeHtml(locText(m.locB))}">${escapeHtml(locText(m.locB))}</td></tr>`;
+    }
+    body.innerHTML = html;
+    document.getElementById('sumCount').textContent =
+      `共 ${rows.length} 个匹配指令号` + (rows.length > MAX_RENDER ? `（仅渲染前 ${MAX_RENDER} 行，完整请下载 CSV）` : '');
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  }
+
+  function csvEscape(s) {
+    s = String(s === undefined || s === null ? '' : s);
+    return /[",\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+  }
+
+  function makeCsv(rows, headers) {
+    const lines = [headers.map(csvEscape).join(',')];
+    rows.forEach(r => lines.push(r.map(csvEscape).join(',')));
+    return '﻿' + lines.join('\r\n');
+  }
+
+  function setCsvLink(elId, filename, text) {
+    const blob = new Blob([text], { type: 'text/csv;charset=utf-8' });
+    const a = document.getElementById(elId);
+    if (a.dataset.url) URL.revokeObjectURL(a.dataset.url);
+    const url = URL.createObjectURL(blob);
+    a.dataset.url = url;
+    a.href = url;
+    a.download = filename;
+  }
+
+  function renderLegend(colorMap, mode) {
+    const panel = document.getElementById('legend-panel');
+    const div = document.getElementById('legend');
+    if (!colorMap.size) { panel.style.display = 'none'; return; }
+    panel.style.display = 'block';
+    let html = `<b>${mode === 'uniform' ? '统一高亮色：' : '颜色图例（' + colorMap.size + ' 个匹配指令号）：'}</b><br>`;
+    let n = 0;
+    for (const [id, argb] of colorMap) {
+      const css = '#' + argb.slice(2);
+      html += `<span class="legend-item"><span class="legend-swatch" style="background:${css}"></span>${escapeHtml(id)}</span>`;
+      if (++n >= 300) { html += `<br>…共 ${colorMap.size} 个，仅显示前 300 个，完整对应关系见「匹配汇总」Sheet`; break; }
+    }
+    div.innerHTML = html;
+  }
+
+  // ---------- 主流程 ----------
+  async function process() {
+    const fileA = document.getElementById('fileA').files[0];
+    const fileB = document.getElementById('fileB').files[0];
+    if (!fileA || !fileB) { alert('请先选择两个 Excel 文件（.xlsx 或 .xls）'); return; }
+
+    const keywords = (document.getElementById('keywords').value.trim() || '指令号')
+      .split(/[,，]/).map(s => s.trim()).filter(Boolean);
+    const scanRows = Math.max(1, Math.min(50, parseInt(document.getElementById('scanRows').value, 10) || 10));
+    const colorMode = document.getElementById('colorMode').value;
+    const uniformColor = document.getElementById('uniformColor').value;
+    const appendSummary = document.getElementById('appendSummary').checked;
+    const stripCF = document.getElementById('stripCF').checked;
+    const override = parseColOverride(document.getElementById('colOverride').value);
+
+    ['log', 'legend', 'downloads'].forEach(id => document.getElementById(id).innerHTML = '');
+    document.getElementById('stats').className = '';
+    document.getElementById('summary-wrap').className = '';
+    document.getElementById('dl-panel').style.display = 'none';
+    gMatched = []; gOnlyA = []; gOnlyB = [];
+
+    const btn = document.getElementById('runBtn');
+    btn.disabled = true; btn.textContent = '处理中…';
+    try {
+      log('正在读取文件 A …');
+      const wbA = await readWorkbook(fileA);
+      if (wbA.__convertedFromXls) log('  提示：文件 A 为 .xls 旧格式，已转换读取（原有样式不保留，导出时将存为 .xlsx）');
+
+      log('正在读取文件 B …');
+      const wbB = await readWorkbook(fileB);
+      if (wbB.__convertedFromXls) log('  提示：文件 B 为 .xls 旧格式，已转换读取（原有样式不保留，导出时将存为 .xlsx）');
+
+      log('正在识别各 Sheet 的指令号列 …');
+      log('文件 A：');
+      const colMapA = resolveColumns(wbA, keywords, scanRows, override, '文件A');
+      log('文件 B：');
+      const colMapB = resolveColumns(wbB, keywords, scanRows, override, '文件B');
+
+      if (colMapA.size === 0 && colMapB.size === 0) {
+        alert('两个文件都没有识别到指令号列，请检查关键词或用手动指定列。');
+        return;
+      }
+      if (stripCF) log('设置已勾选：导出时将清除原文件中的条件格式，避免旧规则与本次高亮叠加显示');
+
+      log('正在收集文件 A 的指令号 …');
+      const mapA = collectOrders(wbA, colMapA);
+      log(`文件 A 共 ${mapA.size} 个唯一指令号`);
+
+      log('正在收集文件 B 的指令号 …');
+      const mapB = collectOrders(wbB, colMapB);
+      log(`文件 B 共 ${mapB.size} 个唯一指令号`);
+
+      const { matched, onlyA, onlyB } = diffOrders(mapA, mapB);
+      gMatched = matched; gOnlyA = onlyA; gOnlyB = onlyB;
+      log(`匹配到相同指令号：${matched.length} 个；仅文件 A 有：${onlyA.length} 个；仅文件 B 有：${onlyB.length} 个`);
+
+      if (matched.length === 0) {
+        alert('没有匹配到相同指令号。页面下方仍提供未匹配清单 CSV，可下载核对是否存在规范化差异之外的真正不同。');
+      }
+
+      const stats = document.getElementById('stats');
+      stats.className = 'on';
+      document.getElementById('stMatched').textContent = matched.length;
+      document.getElementById('stOnlyA').textContent = onlyA.length;
+      document.getElementById('stOnlyB').textContent = onlyB.length;
+
+      const colorMap = buildColorMap(matched.map(m => m.id), colorMode, uniformColor);
+      renderLegend(colorMap, colorMode);
+
+      let totalCells = 0;
+      if (matched.length > 0) {
+        log('正在高亮文件 A 中匹配的指令号 …');
+        const detailsA = highlightWorkbook(wbA, colMapA, colorMap, '文件A');
+        log('正在高亮文件 B 中匹配的指令号 …');
+        const detailsB = highlightWorkbook(wbB, colMapB, colorMap, '文件B');
+        totalCells = detailsA.length + detailsB.length;
+        document.getElementById('stCells').textContent = totalCells;
+
+        log(`<b>===== 高亮单元格明细（共 ${totalCells} 个，前 1000 条） =====</b>`);
+        const all = detailsA.concat(detailsB);
+        all.slice(0, 1000).forEach((d, i) => {
+          log(`[${i + 1}] ${d.label} - Sheet "${d.sheetName}" 第 ${d.row} 行：${d.text}`);
+        });
+        if (all.length > 1000) log(`… 其余 ${all.length - 1000} 条省略，完整明细见导出的「匹配汇总」Sheet / 页面表格 …`);
+      }
+
+      if (appendSummary && matched.length > 0) {
+        appendSummarySheet(wbA, matched, '文件A');
+        appendSummarySheet(wbB, matched, '文件B');
+        log('已在两个文件中追加「匹配汇总」Sheet');
+      }
+
+      // 页面汇总表 + CSV
+      document.getElementById('summary-wrap').className = 'on';
+      renderSummaryTable();
+      setCsvLink('csvMatched', '匹配清单.csv', makeCsv(
+        matched.map(m => [m.raw, m.countA, m.countB, locText(m.locA), locText(m.locB)]),
+        ['指令号', '文件A出现次数', '文件B出现次数', '文件A位置', '文件B位置']));
+      setCsvLink('csvOnlyA', '仅文件A有.csv', makeCsv(
+        onlyA.map(m => [m.raw, m.countA, locText(m.locA)]), ['指令号', '文件A出现次数', '文件A位置']));
+      setCsvLink('csvOnlyB', '仅文件B有.csv', makeCsv(
+        onlyB.map(m => [m.raw, m.countB, locText(m.locB)]), ['指令号', '文件B出现次数', '文件B位置']));
+
+      // 导出下载
+      log('正在生成导出文件 …');
+      const dl = document.getElementById('downloads');
+      dl.innerHTML = '';
+      const mk = (wb, file, tag) => {
+        const ext = wb.__convertedFromXls ? '.xlsx' : (file.name.match(/\.xlsx?$/i) || ['.xlsx'])[0];
+        const base = file.name.replace(/\.xlsx?$/i, '');
+        const a = document.createElement('a');
+        a.href = '#'; a.textContent = `下载${tag}（已高亮）`;
+        dl.appendChild(a);
+        wb.xlsx.writeBuffer({ useSharedStrings: false }).then(async buf => {
+          if (stripCF) buf = await stripConditionalFormatting(buf);
+          const url = URL.createObjectURL(new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }));
+          a.href = url; a.download = base + '_匹配高亮' + (ext === '.xls' ? '.xlsx' : ext);
+        });
+      };
+      mk(wbA, fileA, '文件 A');
+      mk(wbB, fileB, '文件 B');
+      document.getElementById('dl-panel').style.display = 'block';
+
+      log('全部完成！');
+    } catch (err) {
+      console.error(err);
+      log('发生错误：' + (err && err.message ? err.message : err));
+      alert('处理失败，请查看日志。常见原因：文件被占用、格式损坏，或选择了不支持的文件类型。');
+    } finally {
+      btn.disabled = false; btn.textContent = '开始匹配并高亮';
+    }
+  }
+
+  document.getElementById('colorMode').addEventListener('change', e => {
+    document.getElementById('uniformColorRow').style.display = e.target.value === 'uniform' ? 'flex' : 'none';
+  });
+  </script>
+</body>
+</html>
