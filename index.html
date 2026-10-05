@@ -1,806 +1,1820 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Excel 指令号匹配核对工具</title>
-  <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
-  <style>
-    :root {
-      --bg: #f5f5f3;
-      --panel: #ffffff;
-      --line: #e2e2de;
-      --ink: #1a1a1a;
-      --ink-2: #6b6b66;
-      --accent: #16634d;
-      --accent-hover: #0f4d3b;
-      --warn-bg: #fdf6e3;
-      --warn-line: #e8d9a0;
-      --mono: "SF Mono", Consolas, "Courier New", monospace;
-    }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0; background: var(--bg); color: var(--ink);
-      font-family: -apple-system, "PingFang SC", "Microsoft YaHei", "Segoe UI", sans-serif;
-      font-size: 14px; line-height: 1.6;
-    }
-    header {
-      padding: 22px 28px 14px;
-      border-bottom: 1px solid var(--line);
-      background: var(--panel);
-    }
-    header h1 { margin: 0 0 4px; font-size: 20px; font-weight: 700; letter-spacing: 0.02em; }
-    header p { margin: 0; color: var(--ink-2); font-size: 13px; }
-    main { max-width: 1180px; margin: 0 auto; padding: 20px 28px 60px; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>利鑫物流 · Excel 核对工具</title>
+<script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+<style>
+:root{
+  --brand:#0d5344; --brand-2:#16634d; --brand-3:#1f8a6c; --brand-soft:#e8f3ef;
+  --gold:#c9a961;
+  --bg:#f7f6f3; --panel:#fff; --panel-2:#fbfbfa;
+  --line:#e5e3dd; --line-2:#efede7;
+  --ink:#1a1a1a; --ink-2:#6b6b66; --ink-3:#96938b;
+  --good:#2e7d32; --bad:#c62828; --warn:#e65100;
+  --shadow:0 1px 2px rgba(0,0,0,.03),0 2px 8px rgba(0,0,0,.04);
+  --mono:"SF Mono",Consolas,"Courier New",monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei","Segoe UI",sans-serif;
+  font-size:14px;line-height:1.6;-webkit-font-smoothing:antialiased}
 
-    section.panel {
-      background: var(--panel); border: 1px solid var(--line);
-      border-radius: 6px; padding: 16px 20px; margin-bottom: 16px;
-    }
-    section.panel h2 {
-      margin: 0 0 12px; font-size: 13px; font-weight: 700;
-      text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-2);
-    }
+/* 品牌栏 */
+.brand-bar{background:linear-gradient(135deg,#0a4a3d,#0d5344 45%,#16634d);
+  color:#fff;border-bottom:3px solid var(--gold);position:relative;overflow:hidden}
+.brand-bar::after{content:"";position:absolute;right:-60px;top:-60px;width:280px;height:280px;
+  border-radius:50%;background:radial-gradient(circle,rgba(201,169,97,.15),transparent 70%);pointer-events:none}
+.brand-inner{max-width:1200px;margin:0 auto;padding:20px 32px;display:flex;align-items:center;gap:18px}
+.brand-logo{width:56px;height:56px;border-radius:12px;
+  background:linear-gradient(135deg,#c9a961,#a88a4a);display:flex;align-items:center;justify-content:center;
+  font-size:22px;font-weight:800;color:#0d5344;font-family:serif;
+  box-shadow:0 4px 12px rgba(0,0,0,.2),inset 0 1px 0 rgba(255,255,255,.3);flex-shrink:0}
+.brand-text{flex:1;min-width:0}
+.brand-company{font-size:13px;color:var(--gold);letter-spacing:.15em;font-weight:600;margin-bottom:2px}
+.brand-title{font-size:22px;font-weight:700;color:#fff;line-height:1.2}
+.brand-sub{font-size:12.5px;color:rgba(255,255,255,.7);margin-top:3px}
 
-    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 28px; }
-    .grid .full { grid-column: 1 / -1; }
-    label.field { display: block; font-size: 13px; color: var(--ink); }
-    label.field .hint { display: block; color: var(--ink-2); font-size: 12px; margin-top: 1px; }
-    input[type="file"], input[type="text"], input[type="number"], select {
-      width: 100%; margin-top: 4px; padding: 7px 9px;
-      border: 1px solid var(--line); border-radius: 4px;
-      font: inherit; background: #fff; color: var(--ink);
-    }
-    input[type="file"] { padding: 5px 7px; }
-    input[type="color"] { width: 44px; height: 32px; padding: 2px; border: 1px solid var(--line); border-radius: 4px; vertical-align: middle; }
-    .row-inline { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-    .row-inline > * { margin-top: 0 !important; width: auto !important; }
-    .checkbox-line { display: flex; align-items: center; gap: 8px; font-size: 13px; }
-    .checkbox-line input { width: auto; }
+main{max-width:1200px;margin:0 auto;padding:24px 32px 80px}
 
-    details.advanced { margin-top: 10px; font-size: 13px; }
-    details.advanced summary { cursor: pointer; color: var(--ink-2); }
-    details.advanced[open] summary { margin-bottom: 8px; }
+/* 卡片 */
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;
+  padding:22px 26px;margin-bottom:18px;box-shadow:var(--shadow)}
+.card-title{margin:0 0 16px;font-size:15px;font-weight:700;color:var(--ink);
+  display:flex;align-items:center;gap:10px}
+.card-title .num{display:inline-flex;align-items:center;justify-content:center;
+  width:22px;height:22px;border-radius:50%;background:var(--brand-soft);color:var(--brand-2);
+  font-size:12px;font-weight:700;flex-shrink:0}
+.card-title .sub{color:var(--ink-3);font-weight:400;font-size:12.5px;margin-left:4px}
 
-    button.run {
-      display: inline-block; padding: 10px 26px; font-size: 15px; font-weight: 600;
-      color: #fff; background: var(--accent); border: none; border-radius: 5px;
-      cursor: pointer; letter-spacing: 0.03em;
-    }
-    button.run:hover:not(:disabled) { background: var(--accent-hover); }
-    button.run:disabled { opacity: 0.5; cursor: not-allowed; }
+/* 模式选择 */
+.mode-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.mode-card{border:2px solid var(--line);border-radius:10px;padding:18px 20px;
+  cursor:pointer;transition:all .18s;background:#fff;position:relative}
+.mode-card:hover{border-color:#c9c6be;transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,.06)}
+.mode-card.active{border-color:var(--brand-2);background:linear-gradient(135deg,#e8f3ef,#f0f8f5)}
+.mode-card.active::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;
+  background:var(--brand-2);border-radius:10px 0 0 10px}
+.mode-card input{display:none}
+.mode-name{font-size:15px;font-weight:700;color:var(--ink);margin-bottom:4px}
+.mode-card.active .mode-name{color:var(--brand)}
+.mode-desc{font-size:12.5px;color:var(--ink-2);line-height:1.55}
 
-    #stats { display: none; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
-    #stats.on { display: grid; }
-    .stat { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 12px 16px; }
-    .stat .num { font-size: 24px; font-weight: 700; font-variant-numeric: tabular-nums; }
-    .stat .cap { font-size: 12px; color: var(--ink-2); }
+/* 表单 */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px 26px}
+.grid-2 .full{grid-column:1/-1}
+label.field{display:block;font-size:13px;color:var(--ink);font-weight:500}
+label.field .hint{display:block;color:var(--ink-3);font-size:12px;font-weight:400;margin-top:2px}
+input[type=file],input[type=text],input[type=number],select{
+  width:100%;margin-top:6px;padding:9px 12px;border:1px solid var(--line);border-radius:7px;
+  font:inherit;background:#fff;color:var(--ink);transition:border-color .15s,box-shadow .15s}
+input[type=text]:focus,input[type=number]:focus,select:focus{
+  outline:none;border-color:var(--brand-2);box-shadow:0 0 0 3px rgba(22,99,77,.1)}
+input[type=file]{padding:7px 10px;cursor:pointer}
+input[type=color]{width:44px;height:36px;padding:2px;border:1px solid var(--line);border-radius:7px;cursor:pointer}
+.row-inline{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.cb-line{display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer}
+.cb-line input{width:auto;margin:0;accent-color:var(--brand-2)}
 
-    #log {
-      background: #111312; color: #d7dbd6; border-radius: 6px;
-      padding: 12px 14px; max-height: 380px; overflow-y: auto;
-      white-space: pre-wrap; word-break: break-all;
-      font-family: var(--mono); font-size: 12.5px; line-height: 1.55;
-    }
-    #log .t { color: #8a918b; }
+/* 按钮 */
+button{font-family:inherit;cursor:pointer;transition:all .15s}
+.btn-primary{display:inline-flex;align-items:center;gap:8px;padding:11px 28px;
+  font-size:14.5px;font-weight:600;color:#fff;
+  background:linear-gradient(135deg,var(--brand),var(--brand-2));border:none;border-radius:8px;
+  box-shadow:0 2px 6px rgba(13,83,68,.25)}
+.btn-primary:hover:not(:disabled){background:linear-gradient(135deg,var(--brand-2),var(--brand-3));
+  box-shadow:0 4px 12px rgba(13,83,68,.32);transform:translateY(-1px)}
+.btn-primary:disabled{opacity:.45;cursor:not-allowed;transform:none;box-shadow:none}
+.btn-ghost{display:inline-flex;align-items:center;gap:8px;padding:10px 22px;
+  font-size:14px;font-weight:600;color:var(--brand-2);background:#fff;
+  border:1.5px solid var(--brand-2);border-radius:8px}
+.btn-ghost:hover:not(:disabled){background:var(--brand-soft)}
+.btn-ghost:disabled{opacity:.45;cursor:not-allowed}
+.btn-mini{padding:2px 10px;font-size:11.5px;color:var(--ink-2);
+  background:#fff;border:1px solid var(--line);border-radius:5px}
+.btn-mini:hover{border-color:var(--brand-2);color:var(--brand-2)}
+.btn-link{color:var(--brand-2);text-decoration:none;font-size:12.5px;font-weight:500}
+.btn-link:hover{color:var(--brand);text-decoration:underline}
 
-    #summary-wrap { display: none; }
-    #summary-wrap.on { display: block; }
-    #summary-tools { display: flex; gap: 10px; align-items: center; margin: 8px 0; }
-    #summary-tools input { flex: 0 1 320px; }
-    #summary-tools .count { color: var(--ink-2); font-size: 12px; margin-left: auto; }
-    .table-scroll { max-height: 460px; overflow: auto; border: 1px solid var(--line); border-radius: 4px; }
-    table.sum { border-collapse: collapse; width: 100%; font-size: 13px; }
-    table.sum th, table.sum td {
-      border-bottom: 1px solid var(--line); padding: 6px 10px;
-      text-align: left; white-space: nowrap; max-width: 340px; overflow: hidden; text-overflow: ellipsis;
-    }
-    table.sum thead th {
-      position: sticky; top: 0; background: #efefec; z-index: 1;
-      font-size: 12px; color: var(--ink-2); font-weight: 600;
-    }
-    table.sum tbody tr:hover { background: #f4f7f5; }
-    table.sum td.id { font-family: var(--mono); font-size: 12.5px; }
-    table.sum td.c { text-align: right; font-variant-numeric: tabular-nums; }
+/* Sheet 卡片 */
+.sheet-card{border:1px solid var(--line);border-radius:9px;
+  padding:14px 16px;margin-bottom:10px;background:var(--panel-2)}
+.sheet-card.off{opacity:.55}
+.sheet-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.sheet-head input[type=number]{width:90px;margin-top:0;padding:5px 8px}
+.sheet-head .sh-count{font-size:12px;color:var(--ink-3);margin-left:auto;font-weight:500}
+.sheet-name{font-size:14px;font-weight:700;color:var(--ink);display:flex;align-items:center;gap:6px}
+.sheet-name::before{content:"";display:inline-block;width:4px;height:14px;background:var(--brand-2);border-radius:2px}
+.col-list{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}
+.col-chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);
+  background:#fff;border-radius:6px;padding:5px 10px;font-size:12.5px;cursor:pointer;
+  max-width:240px;transition:all .15s;user-select:none}
+.col-chip:hover{border-color:#c9c6be}
+.col-chip.on{border-color:var(--brand-2);background:var(--brand-soft);color:var(--brand)}
+.col-chip input{width:auto;margin:0;accent-color:var(--brand-2)}
+.col-chip span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.empty-hint{font-size:12.5px;color:var(--ink-3);font-style:italic}
+.warn-text{color:var(--warn);font-weight:500}
 
-    #legend { font-size: 12.5px; }
-    .legend-item { display: inline-flex; align-items: center; margin: 2px 12px 2px 0; font-family: var(--mono); font-size: 12px; }
-    .legend-swatch { display: inline-block; width: 14px; height: 14px; border: 1px solid rgba(0,0,0,0.25); margin-right: 5px; }
+/* 配置行 */
+.cfg-row{display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+  padding:11px 14px;margin-top:10px;border:1px solid var(--line);border-radius:8px;background:var(--panel-2)}
+.cfg-row .lbl{font-size:12.5px;color:var(--ink-2);font-weight:600;min-width:70px;letter-spacing:.02em}
+.cfg-row select{width:auto;min-width:220px;margin:0;padding:6px 10px;font-size:13px}
 
-    #downloads a {
-      display: inline-block; margin: 6px 10px 0 0; padding: 9px 18px;
-      background: var(--accent); color: #fff; text-decoration: none; border-radius: 5px; font-size: 14px;
-    }
-    #downloads a:hover { background: var(--accent-hover); }
-    #downloads a.secondary { background: #fff; color: var(--ink); border: 1px solid var(--line); }
-    #downloads a.secondary:hover { border-color: var(--ink-2); }
+/* 区间项 */
+.interval-item{display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+  padding:10px 14px;border-radius:8px;margin-top:7px;background:#fff;border:1px solid var(--line)}
+.interval-item.on{border-color:var(--brand-2);background:linear-gradient(135deg,#f0f8f5,#fff)}
+.interval-item .iv-head{display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;min-width:240px}
+.interval-item .iv-head input{accent-color:var(--brand-2)}
+.interval-item .iv-head span{max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500}
+.interval-item .iv-edit{display:flex;align-items:center;gap:6px;margin-left:auto;
+  font-size:12.5px;color:var(--ink-2);font-family:var(--mono)}
+.interval-item .iv-edit input[type=text]{width:72px;padding:4px 8px;margin:0;text-align:center;
+  font-size:12.5px;font-family:var(--mono)}
+.iv-status{font-weight:700;font-size:14px;margin-left:4px}
+.iv-status.ok{color:var(--good)}
+.iv-status.bad{color:var(--bad)}
 
-    .note {
-      background: var(--warn-bg); border: 1px solid var(--warn-line);
-      border-radius: 4px; padding: 8px 12px; font-size: 12.5px; color: #6a5d21; margin-top: 10px;
-    }
-  </style>
+/* 统计 */
+#stats{display:none;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px}
+#stats.on{display:grid}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:10px;
+  padding:16px 20px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+.stat::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;
+  background:var(--brand-2);opacity:.25}
+.stat.good::before{background:var(--good);opacity:.6}
+.stat.bad::before{background:var(--bad);opacity:.6}
+.stat.warn::before{background:var(--warn);opacity:.6}
+.stat .num{font-size:28px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.1}
+.stat.good .num{color:var(--good)}
+.stat.bad .num{color:var(--bad)}
+.stat.warn .num{color:var(--warn)}
+.stat .cap{font-size:12.5px;color:var(--ink-2);margin-top:4px}
+
+/* 结果表 */
+#summary-wrap{display:none}
+#summary-wrap.on{display:block}
+.tbl-tools{display:flex;gap:12px;align-items:center;margin:8px 0 12px;flex-wrap:wrap}
+.tbl-tools input{flex:0 1 300px;margin-top:0;padding:7px 12px}
+.tbl-tools .count{color:var(--ink-2);font-size:12.5px;margin-left:auto}
+.table-scroll{max-height:520px;overflow:auto;border:1px solid var(--line);border-radius:9px}
+table.sum{border-collapse:collapse;width:100%;font-size:13px}
+table.sum th,table.sum td{border-bottom:1px solid var(--line-2);padding:9px 12px;
+  text-align:left;white-space:nowrap;max-width:340px;overflow:hidden;text-overflow:ellipsis}
+table.sum thead th{position:sticky;top:0;background:linear-gradient(180deg,#f5f4f0,#efede7);
+  z-index:1;font-size:12px;color:var(--ink-2);font-weight:700;cursor:pointer;user-select:none;letter-spacing:.03em}
+table.sum thead th:hover{color:var(--brand-2)}
+table.sum tbody tr:hover{background:var(--brand-soft)}
+table.sum td.id{font-family:var(--mono);font-size:12.5px}
+table.sum td.c{text-align:right;font-variant-numeric:tabular-nums}
+tr.row-good{background:#f4faf5}
+tr.row-bad{background:#fdf3f3}
+tr.row-warn{background:#fffaf0}
+tr.row-good:hover{background:#e8f5e9}
+tr.row-bad:hover{background:#fce4e4}
+tr.row-warn:hover{background:#ffefd5}
+td.status-good{color:var(--good);font-weight:700}
+td.status-bad{color:var(--bad);font-weight:700}
+td.status-warn{color:var(--warn);font-weight:700}
+
+/* 日志 */
+#log{background:#0f1512;color:#d7dbd6;border-radius:9px;padding:14px 18px;
+  max-height:400px;overflow-y:auto;white-space:pre-wrap;word-break:break-word;
+  font-family:var(--mono);font-size:12.5px;line-height:1.65}
+#log .t{color:#6e7a70;user-select:none}
+#log b{color:#7dd3a7}
+
+/* 图例 */
+#legend{font-size:12.5px;line-height:2}
+.legend-item{display:inline-flex;align-items:center;margin:2px 14px 2px 0;
+  font-family:var(--mono);font-size:12px}
+.legend-swatch{display:inline-block;width:15px;height:15px;
+  border:1px solid rgba(0,0,0,.18);margin-right:6px;border-radius:3px}
+
+/* 下载 */
+#downloads a{display:inline-flex;align-items:center;gap:8px;margin:8px 10px 0 0;
+  padding:11px 22px;background:linear-gradient(135deg,var(--brand),var(--brand-2));
+  color:#fff;text-decoration:none;border-radius:8px;font-size:14px;font-weight:600;
+  box-shadow:0 2px 6px rgba(13,83,68,.2);transition:all .15s}
+#downloads a:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(13,83,68,.3)}
+
+/* 提示 */
+.note{background:linear-gradient(135deg,#fdf9ee,#fdf6e3);border:1px solid #ede0b8;
+  border-left:3px solid var(--gold);border-radius:7px;padding:10px 14px;
+  font-size:12.5px;color:#6a5d21;line-height:1.65}
+.note b{color:#5a4d17}
+
+@media (max-width:780px){
+  .brand-inner{padding:16px 20px}
+  .brand-title{font-size:18px}
+  main{padding:18px 16px 60px}
+  .card{padding:16px 18px}
+  .grid-2,.mode-grid{grid-template-columns:1fr}
+  #stats.on{grid-template-columns:repeat(2,1fr)}
+}
+</style>
 </head>
 <body>
-  <header>
-    <h1>Excel 指令号匹配核对工具</h1>
-    <p>对比两个 Excel 文件（均支持多 Sheet），自动识别“指令号”列，忽略空格 / 全角半角 / 隐藏字符差异后做匹配，只给指令号列上色；同一指令号颜色固定不变，合并单元格按主单元格整体涂色，并在页面输出完整匹配清单。</p>
-  </header>
-  <main>
 
-    <section class="panel">
-      <h2>① 选择文件与匹配设置</h2>
-      <div class="grid">
-        <label class="field">文件 A（可多 Sheet，支持 .xlsx / .xls）
-          <input type="file" id="fileA" accept=".xlsx,.xls">
-        </label>
-        <label class="field">文件 B（可多 Sheet，支持 .xlsx / .xls）
-          <input type="file" id="fileB" accept=".xlsx,.xls">
-        </label>
-        <label class="field full">指令号列标题关键词（逗号分隔，精确匹配优先；可多个叫法）
-          <input type="text" id="keywords" value="指令号,命令号,指令编号">
-          <span class="hint">识别规则：在前 N 行里找标题，与关键词“完全相同”优先于“开头相同”，开头相同优先于“包含”。</span>
-        </label>
-        <label class="field">表头扫描行数
-          <input type="number" id="scanRows" value="10" min="1" max="50" style="width:90px">
-        </label>
-        <label class="field">高亮颜色模式
-          <select id="colorMode" style="width:220px">
-            <option value="multi">每个指令号不同颜色</option>
-            <option value="uniform">全部匹配统一颜色</option>
-          </select>
-        </label>
-        <label class="field full row-inline" id="uniformColorRow" style="display:none">
-          统一填充色：<input type="color" id="uniformColor" value="#ffe08a">
-          <span class="hint">匹配数量很大时，统一颜色 + 页面汇总表比“千色变”更清晰。</span>
-        </label>
-        <label class="field full checkbox-line">
-          <input type="checkbox" id="appendSummary" checked>
-          在两个导出文件中各追加一个「匹配汇总」Sheet（列出每个匹配指令号的出现次数和位置，不影响原有 Sheet）
-        </label>
-        <label class="field full checkbox-line">
-          <input type="checkbox" id="stripCF" checked>
-          清除原文件中的条件格式（强烈建议保留勾选：旧文件里可能藏着“重复值高亮”等规则，不清除会和本次高亮叠在一起，看起来像乱涂色）
-        </label>
-      </div>
-
-      <details class="advanced">
-        <summary>高级：手动指定某 Sheet 的指令号列（防止自动识别判错列）</summary>
-        <label class="field">格式：<code>Sheet名=C</code>，多条用分号分隔，例如 <code>数据=C; 汇总=D</code>（对文件 A、B 同时生效，Sheet 名不区分大小写）
-          <input type="text" id="colOverride" placeholder="留空 = 全部自动识别">
-        </label>
-      </details>
-
-      <div style="margin-top:14px">
-        <button class="run" id="runBtn" onclick="process()">开始匹配并高亮</button>
-      </div>
-    </section>
-
-    <div id="stats">
-      <div class="stat"><div class="num" id="stMatched">0</div><div class="cap">匹配到的指令号</div></div>
-      <div class="stat"><div class="num" id="stOnlyA">0</div><div class="cap">仅文件 A 有</div></div>
-      <div class="stat"><div class="num" id="stOnlyB">0</div><div class="cap">仅文件 B 有</div></div>
-      <div class="stat"><div class="num" id="stCells">0</div><div class="cap">高亮单元格（A + B）</div></div>
+<header class="brand-bar">
+  <div class="brand-inner">
+    <div class="brand-logo">鑫</div>
+    <div class="brand-text">
+      <div class="brand-company">SHENZHEN LIXIN LOGISTICS</div>
+      <div class="brand-title">深圳市利鑫物流有限公司</div>
+      <div class="brand-sub">Excel 数据核对工具 · 集合匹配 / 查值核对</div>
     </div>
+  </div>
+</header>
 
-    <section class="panel" id="summary-wrap">
-      <h2>② 匹配结果总览（点列头可排序，可筛选）</h2>
-      <div id="summary-tools">
-        <input type="text" id="sumFilter" placeholder="按指令号筛选…" oninput="renderSummaryTable()">
-        <a href="#" id="csvMatched" download="匹配汇总.csv">下载 匹配清单 CSV</a>
-        <a href="#" id="csvOnlyA" download="仅文件A有.csv">仅 A 有 CSV</a>
-        <a href="#" id="csvOnlyB" download="仅文件B有.csv">仅 B 有 CSV</a>
-        <span class="count" id="sumCount"></span>
-      </div>
-      <div class="table-scroll">
-        <table class="sum">
-          <thead>
-            <tr>
-              <th onclick="sortSummary('id')">指令号 <span id="sortMark-id"></span></th>
-              <th onclick="sortSummary('countA')">A 出现次数 <span id="sortMark-countA"></span></th>
-              <th onclick="sortSummary('countB')">B 出现次数 <span id="sortMark-countB"></span></th>
-              <th>A 位置（Sheet!行号）</th>
-              <th>B 位置（Sheet!行号）</th>
-            </tr>
-          </thead>
-          <tbody id="sumBody"></tbody>
-        </table>
-      </div>
-    </section>
+<main>
 
-    <section class="panel">
-      <h2>③ 处理日志</h2>
-      <div id="log"></div>
-    </section>
+<section class="card">
+  <h2 class="card-title"><span class="num">1</span>选择处理模式</h2>
+  <div class="mode-grid" id="modeGrid">
+    <label class="mode-card active" data-mode="set">
+      <input type="radio" name="mode" value="set" checked>
+      <div class="mode-name">集合匹配</div>
+      <div class="mode-desc">两张表各选一列或多列，找出值相同的记录。适合指令号、订单号等标识的交叉比对。</div>
+    </label>
+    <label class="mode-card" data-mode="lookup">
+      <input type="radio" name="mode" value="lookup">
+      <div class="mode-name">查值核对</div>
+      <div class="mode-desc">用「键」在规则表/矩阵表里定位一条记录，取出值，和明细表逐行核对。适合单价、折扣、税率核对。</div>
+    </label>
+  </div>
+</section>
 
-    <section class="panel" id="legend-panel" style="display:none">
-      <h2>④ 颜色图例</h2>
-      <div id="legend"></div>
-    </section>
+<section class="card">
+  <h2 class="card-title"><span class="num">2</span>选择文件并读取</h2>
+  <div class="grid-2">
+    <label class="field">文件 A（主表 / 左侧表）
+      <input type="file" id="fileA" accept=".xlsx,.xls">
+      <span class="hint" id="hintA">可多 Sheet，支持 .xlsx / .xls</span>
+    </label>
+    <label class="field">文件 B（明细表 / 右侧表）
+      <input type="file" id="fileB" accept=".xlsx,.xls">
+      <span class="hint" id="hintB">可多 Sheet，支持 .xlsx / .xls</span>
+    </label>
+  </div>
+  <div style="margin-top:16px">
+    <button class="btn-ghost" id="readBtn" onclick="readFiles()">读取文件并解析</button>
+    <span class="empty-hint" style="margin-left:12px">读取完成后请在下方配置 Sheet、表头行与列。</span>
+  </div>
+</section>
 
-    <section class="panel" id="dl-panel" style="display:none">
-      <h2>⑤ 下载结果</h2>
-      <div id="downloads"></div>
-      <div class="note">提示：.xls 旧格式文件读出后重新保存为 .xlsx（原格式与样式不保留）；.xlsx 文件原有样式和公式会保留，仅指令号列的匹配单元格被填充颜色；勾选“清除条件格式”后原文件的重复值高亮等规则会被移除，不会与本次高亮混显。</div>
-    </section>
+<div id="configPanel"></div>
 
-  </main>
+<section class="card" id="settingsPanel" style="display:none">
+  <h2 class="card-title"><span class="num">4</span>处理与导出设置</h2>
+  <div class="grid-2" id="settingsSet">
+    <label class="field">高亮颜色模式
+      <select id="colorMode">
+        <option value="multi">每个匹配键不同颜色</option>
+        <option value="uniform">全部匹配统一颜色</option>
+      </select>
+    </label>
+    <label class="field row-inline" id="uniformColorRow" style="display:none">
+      统一填充色：<input type="color" id="uniformColor" value="#ffe08a">
+    </label>
+  </div>
+  <div class="grid-2" id="settingsLookup" style="display:none">
+    <label class="field">数值比较容差
+      <input type="number" id="tolerance" value="0.01" step="0.0001" min="0">
+      <span class="hint">两边数值差在此范围内视为一致。填 0 表示严格相等。</span>
+    </label>
+    <label class="field">核对异常处理
+      <select id="onMiss">
+        <option value="mark">标黄高亮，便于人工复查</option>
+        <option value="skip">跳过（不高亮，仅记日志）</option>
+      </select>
+    </label>
+  </div>
+  <div class="note" style="margin-top:14px">
+    导出时固定：① 追加「核对汇总」Sheet；② 清除原文件中的条件格式（避免旧规则与本次高亮叠加）。
+  </div>
+  <div style="margin-top:16px">
+    <button class="btn-primary" id="runBtn" onclick="process()" disabled>开始处理</button>
+  </div>
+</section>
 
-  <script>
-  // ==================== CORE-START ====================
-  // 以下为纯逻辑，与页面 DOM 无关
+<div id="stats"></div>
 
-  // 读取单元格文本：兼容富文本 / 公式 / 日期 / 数字
-  function getCellText(cell) {
-    if (!cell) return '';
-    let v = cell.value;
-    if (v === null || v === undefined) return '';
-    if (v instanceof Date) {
-      const y = v.getFullYear(), m = String(v.getMonth() + 1).padStart(2, '0'), d = String(v.getDate()).padStart(2, '0');
-      return `${y}-${m}-${d}`;
-    }
-    if (typeof v === 'number') return Number.isInteger(v) ? String(v) : String(v);
-    if (typeof v === 'object') {
-      if (v.richText) return v.richText.map(t => t.text).join('');
-      if (v.text !== undefined) return String(v.text);
-      if (v.result !== undefined && v.result !== null) return String(v.result);
-      return String(v);
-    }
+<section class="card" id="summary-wrap">
+  <h2 class="card-title"><span class="num">5</span>结果总览<span class="sub">点列头排序</span></h2>
+  <div class="tbl-tools">
+    <input type="text" id="sumFilter" placeholder="按关键字筛选…" oninput="renderSummaryTable()">
+    <a href="#" id="csvMain" class="btn-link">下载 主清单 CSV</a>
+    <a href="#" id="csvOnlyA" class="btn-link">下载 仅A CSV</a>
+    <a href="#" id="csvOnlyB" class="btn-link">下载 仅B CSV</a>
+    <span class="count" id="sumCount"></span>
+  </div>
+  <div class="table-scroll">
+    <table class="sum">
+      <thead id="sumHead"></thead>
+      <tbody id="sumBody"></tbody>
+    </table>
+  </div>
+</section>
+
+<section class="card" id="legend-panel" style="display:none">
+  <h2 class="card-title"><span class="num">6</span>颜色图例</h2>
+  <div id="legend"></div>
+</section>
+
+<section class="card" id="dl-panel" style="display:none">
+  <h2 class="card-title"><span class="num">7</span>下载结果</h2>
+  <div id="downloads"></div>
+  <div class="note" id="dlNote" style="margin-top:12px"></div>
+</section>
+
+<section class="card">
+  <h2 class="card-title"><span class="num">8</span>处理日志</h2>
+  <div id="log"></div>
+</section>
+
+</main>
+
+<script>
+/* ==================================================================
+   一、核心工具函数
+   ================================================================== */
+
+function getCellText(cell){
+  if(!cell)return '';
+  const v=cell.value;
+  if(v===null||v===undefined)return '';
+  if(v instanceof Date){
+    const y=v.getFullYear(),m=String(v.getMonth()+1).padStart(2,'0'),d=String(v.getDate()).padStart(2,'0');
+    return y+'-'+m+'-'+d;
+  }
+  if(typeof v==='number')return String(v);
+  if(typeof v==='object'){
+    if(v.richText)return v.richText.map(t=>t.text).join('');
+    if(v.text!==undefined)return String(v.text);
+    if(v.result!==undefined&&v.result!==null)return String(v.result);
     return String(v);
   }
+  return String(v);
+}
 
-  // 指令号标准化：去掉所有空白与隐藏字符、全角转半角、统一各类横杠与引号、大写
-  const INVISIBLES = /[\s\u00AD\u200B-\u200F\u2060\uFEFF\u180E\u0009-\u000D\u0085\u2028\u2029]/g; // 含软连字符 U+00AD（不可见）
-  const FULLWIDTH = /[！-～]/g;                 // 全角 ASCII 区 → 半角
-  const DASHES = /[‐‑‒–—―−─━⁃﹘﹣－゠ー︱︲]/g;   // 各类可见横杠 → 半角 -（含 U+2010/2011/2012/2212/2043、日文长音 ー、制表符横线等）
-  const QUOTES = /[“”«»]/g;                     // 弯引号 → 直引号
-  const APOSTROPHES = /[‘’‛`´]/g;               // 弯撇号 → 直撇号
-  function normalizeOrder(raw) {
-    if (raw === null || raw === undefined) return '';
-    return String(raw)
-      .replace(INVISIBLES, '')
-      .replace(FULLWIDTH, ch => String.fromCharCode(ch.charCodeAt(0) - 0xFEE0))
-      .replace(DASHES, '-')
-      .replace(QUOTES, '"')
-      .replace(APOSTROPHES, "'")
-      .toUpperCase();
+const INVISIBLES=/[\s\u00AD\u200B-\u200F\u2060\uFEFF\u180E\u0009-\u000D\u0085\u2028\u2029]/g;
+const FULLWIDTH=/[！-～]/g;
+const DASHES=/[‐‑‒–—―−─━⁃﹘﹣－゠ー︱︲]/g;
+const QUOTES=/[“”«»]/g;
+const APOSTROPHES=/[‘’‛`´]/g;
+function normalize(raw){
+  if(raw===null||raw===undefined)return '';
+  return String(raw)
+    .replace(INVISIBLES,'')
+    .replace(FULLWIDTH,ch=>String.fromCharCode(ch.charCodeAt(0)-0xFEE0))
+    .replace(DASHES,'-').replace(QUOTES,'"').replace(APOSTROPHES,"'")
+    .toUpperCase();
+}
+
+function extractNumber(raw){
+  if(raw===null||raw===undefined)return null;
+  if(typeof raw==='number')return isFinite(raw)?raw:null;
+  const s=String(raw).replace(/,/g,'').trim();
+  if(!s)return null;
+  const m=s.match(/-?\d+(?:\.\d+)?/);
+  if(!m)return null;
+  const n=parseFloat(m[0]);
+  return isFinite(n)?n:null;
+}
+
+/* 从列头文本解析区间 [min, max) */
+function parseInterval(text){
+  const raw=String(text||'').trim();
+  if(!raw)return {min:null,max:null,valid:false,raw,note:'空'};
+  const nums=(raw.match(/\d+(?:\.\d+)?/g)||[]).map(Number);
+  const hasAbove=/以上|及以上|起|不小于|≥|>=|>|＞/.test(raw);
+  const hasBelow=/以下|及以下|以内|不超过|不大于|≤|<=|＜|低于/.test(raw);
+  if(nums.length>=2){
+    const lo=Math.min(nums[0],nums[1]),hi=Math.max(nums[0],nums[1]);
+    return {min:lo,max:hi,valid:true,raw,note:'从列头解析'};
   }
-
-  // 在前 maxScanRows 行里为某个 Sheet 找指令号列，带优先级打分
-  function findOrderColumn(sheet, keywords, maxScanRows) {
-    const rowLimit = Math.min(sheet.rowCount || 0, maxScanRows || 10);
-    let best = null;
-    for (let r = 1; r <= rowLimit; r++) {
-      const row = sheet.getRow(r);
-      if (!row) continue;
-      row.eachCell({ includeEmpty: false }, (cell, colNumber) => {
-        const text = getCellText(cell).trim();
-        if (!text) return;
-        const lower = text.toLowerCase();
-        let score = 0;
-        for (const k of keywords) {
-          const kl = k.toLowerCase();
-          if (lower === kl) score = Math.max(score, 100);
-          else if (lower.startsWith(kl)) score = Math.max(score, 70);
-          else if (lower.includes(kl)) score = Math.max(score, 40);
-        }
-        if (score === 0) return;
-        score += (maxScanRows - r) * 0.1; // 位置越靠上的行略微优先
-        if (!best || score > best.score) {
-          best = { col: colNumber, headerRow: r, score: Math.round(score), matched: text };
-        }
-      });
-    }
-    return best;
+  if(nums.length===1){
+    if(hasAbove)return {min:nums[0],max:null,valid:true,raw,note:'以上'};
+    if(hasBelow)return {min:null,max:nums[0],valid:true,raw,note:'以下'};
+    return {min:null,max:null,valid:false,raw,note:'单数字，边界不明确'};
   }
+  return {min:null,max:null,valid:false,raw,note:'无数字'};
+}
 
-  // ---------- 合并单元格处理 ----------
-  // exceljs 读取合并区从单元格时会返回主单元格的值，若不去重会导致：
-  //   计数翻倍、同一合并区被重复涂色、从单元格涂了色但 Excel 里不显示（Excel 只显示主单元格样式）
-  const mergeCache = new WeakMap();
-  function colToNum(letters) {
-    let n = 0;
-    for (const ch of letters.toUpperCase()) n = n * 26 + (ch.charCodeAt(0) - 64);
-    return n;
-  }
-  function getMergeResolver(sheet) {
-    let mr = mergeCache.get(sheet);
-    if (mr) return mr;
-    mr = { masterOf: new Map(), rangeOf: new Map() }; // 'r:c' -> {row,col}; 'r:c'(主) -> {r1,c1,r2,c2}
-    const merges = (sheet.model && sheet.model.merges) || [];
-    merges.forEach(range => {
-      const m = String(range).match(/^([A-Za-z]+)(\d+):([A-Za-z]+)(\d+)$/);
-      if (!m) return;
-      const c1 = colToNum(m[1]), r1 = parseInt(m[2], 10), c2 = colToNum(m[3]), r2 = parseInt(m[4], 10);
-      const rg = { r1, c1, r2, c2 };
-      mr.rangeOf.set(r1 + ':' + c1, rg);
-      for (let r = r1; r <= r2; r++) for (let c = c1; c <= c2; c++) mr.masterOf.set(r + ':' + c, { row: r1, col: c1 });
-    });
-    mergeCache.set(sheet, mr);
-    return mr;
-  }
-
-  // 收集一个工作簿所有命中列里的指令号：norm -> { raw, count, locs: [] }
-  const MAX_LOCS = 1000; // 单个指令号最多记录的明细位置数（防止极端数据撑爆内存）
-  function collectOrders(workbook, colMap) {
-    const map = new Map();
-    workbook.worksheets.forEach(sheet => {
-      const found = colMap.get(sheet.name);
-      if (!found) return;
-      const { col, headerRow } = found;
-      const mr = getMergeResolver(sheet);
-      const seen = new Set();
-      for (let r = headerRow + 1; r <= (sheet.rowCount || 0); r++) {
-        let raw, locRow;
-        const master = mr.masterOf.get(r + ':' + col);
-        if (master && !(master.row === r && master.col === col)) {
-          // 合并区从单元格：主单元格在指令号列内 → 等主单元格那行统计；在其它列 → 按主单元格去重统计一次
-          if (master.col === col && master.row > headerRow) continue;
-          const mk = master.row + ':' + master.col;
-          if (seen.has(mk)) continue;
-          seen.add(mk);
-          raw = getCellText(sheet.getRow(master.row).getCell(master.col));
-          locRow = master.row;
-        } else {
-          raw = getCellText(sheet.getRow(r).getCell(col));
-          locRow = r;
-        }
-        const norm = normalizeOrder(raw);
-        if (!norm) continue;
-        let entry = map.get(norm);
-        if (!entry) { entry = { raw: String(raw).trim(), count: 0, locs: [] }; map.set(norm, entry); }
-        entry.count++;
-        if (entry.locs.length < MAX_LOCS) entry.locs.push(`${sheet.name}!R${locRow}`);
-      }
-    });
-    return map;
-  }
-
-  // 对两份收集结果做交集 / 差集
-  function diffOrders(mapA, mapB) {
-    const matched = [], onlyA = [], onlyB = [];
-    for (const [id, ea] of mapA) {
-      const eb = mapB.get(id);
-      if (eb) matched.push({ id, raw: ea.raw || eb.raw, countA: ea.count, countB: eb.count, locA: ea.locs, locB: eb.locs });
-      else onlyA.push({ id, raw: ea.raw, countA: ea.count, countB: 0, locA: ea.locs, locB: [] });
-    }
-    for (const [id, eb] of mapB) {
-      if (!mapA.has(id)) onlyB.push({ id, raw: eb.raw, countA: 0, countB: eb.count, locA: [], locB: eb.locs });
-    }
-    matched.sort((x, y) => x.id.localeCompare(y.id, 'zh-Hans-CN', { numeric: true }));
-    onlyA.sort((x, y) => x.id.localeCompare(y.id, 'zh-Hans-CN', { numeric: true }));
-    onlyB.sort((x, y) => x.id.localeCompare(y.id, 'zh-Hans-CN', { numeric: true }));
-    return { matched, onlyA, onlyB };
-  }
-
-  function hslToArgb(h, s, l) {
-    const c = (1 - Math.abs(2 * l - 1)) * s;
-    const x = c * (1 - Math.abs((h / 60) % 2 - 1));
-    const m = l - c / 2;
-    let r, g, b;
-    if (h < 60) [r, g, b] = [c, x, 0];
-    else if (h < 120) [r, g, b] = [x, c, 0];
-    else if (h < 180) [r, g, b] = [0, c, x];
-    else if (h < 240) [r, g, b] = [0, x, c];
-    else if (h < 300) [r, g, b] = [x, 0, c];
-    else [r, g, b] = [c, 0, x];
-    const toHex = v => Math.round((v + m) * 255).toString(16).padStart(2, '0').toUpperCase();
-    return 'FF' + toHex(r) + toHex(g) + toHex(b);
-  }
-
-  // 字符串散列（FNV-1a）：颜色由指令号本身决定 → 同一指令号任何时候都是同一颜色，不同指令号颜色错开
-  function hashStr(s) {
-    let h = 2166136261;
-    for (let i = 0; i < s.length; i++) {
-      h ^= s.codePointAt(i);
-      h = Math.imul(h, 16777619);
-    }
-    return h >>> 0;
-  }
-
-  // mode: 'multi' 每个指令号按散列取色；'uniform' 统一颜色
-  function buildColorMap(matchedIds, mode, uniformHex) {
-    const colorMap = new Map();
-    if (mode === 'uniform') {
-      const hex = (uniformHex || '#ffe08a').replace('#', '').toUpperCase();
-      const argb = 'FF' + hex;
-      matchedIds.forEach(id => colorMap.set(id, argb));
-      return colorMap;
-    }
-    matchedIds.forEach(id => {
-      const h = hashStr(id);
-      const hue = (h * 137.508) % 360;           // 黄金角展开，散列相近也尽量错开
-      const light = 0.82 - ((h >>> 9) % 4) * 0.08;
-      colorMap.set(id, hslToArgb(hue, 0.55, light));
-    });
-    return colorMap;
-  }
-
-  // 只给指令号那一列的匹配单元格上色（合并区按主单元格去重、整区上色），返回高亮明细
-  function highlightWorkbook(workbook, colMap, colorMap, label) {
-    const details = [];
-    workbook.worksheets.forEach(sheet => {
-      const found = colMap.get(sheet.name);
-      if (!found) return;
-      const { col, headerRow } = found;
-      const mr = getMergeResolver(sheet);
-      const done = new Set();
-      // 关键：真实文件里多个单元格常共享同一个 style 对象（exceljs 加载时按样式去重），
-      // 直接 cell.fill = {...} 会改到共享对象，导致一片单元格被误涂。
-      // 必须整体替换 style 引用，绝不修改原对象。
-      const setFill = (cell, argb) => {
-        cell.style = Object.assign({}, cell.style, {
-          fill: { type: 'pattern', pattern: 'solid', fgColor: { argb } }
-        });
-      };
-      const paint = (rowIdx, colIdx, argb) => {
-        const mk = rowIdx + ':' + colIdx;
-        if (done.has(mk)) return false;
-        const rg = mr.rangeOf.get(mk);
-        if (rg) {
-          for (let rr = rg.r1; rr <= rg.r2; rr++) {
-            for (let cc = rg.c1; cc <= rg.c2; cc++) {
-              setFill(sheet.getRow(rr).getCell(cc), argb);
-              done.add(rr + ':' + cc);
-            }
-          }
-        } else {
-          setFill(sheet.getRow(rowIdx).getCell(colIdx), argb);
-          done.add(mk);
-        }
-        return true;
-      };
-      for (let r = headerRow + 1; r <= (sheet.rowCount || 0); r++) {
-        const master = mr.masterOf.get(r + ':' + col);
-        const mrow = master ? master.row : r;
-        const mcol = master ? master.col : col;
-        if (mrow <= headerRow) continue; // 与表头同区合并的怪情况，跳过
-        const norm = normalizeOrder(getCellText(sheet.getRow(mrow).getCell(mcol)));
-        if (norm && colorMap.has(norm)) {
-          if (paint(mrow, mcol, colorMap.get(norm))) {
-            details.push({ label, sheetName: sheet.name, row: mrow, text: norm });
-          }
-        }
-      }
-    });
-    return details;
-  }
-
-  // 在导出文件中追加「匹配汇总」Sheet
-  function appendSummarySheet(workbook, matched, label) {
-    let name = '匹配汇总';
-    let n = 2;
-    while (workbook.getWorksheet(name)) name = '匹配汇总_' + (n++);
-    const ws = workbook.addWorksheet(name);
-    ws.columns = [
-      { header: '指令号', key: 'id', width: 24 },
-      { header: label + '出现次数', key: 'cnt', width: 14 },
-      { header: label + '位置（Sheet!行号）', key: 'loc', width: 80 },
-    ];
-    ws.getRow(1).font = { bold: true };
-    matched.forEach(m => {
-      const locs = m['loc' + (label === '文件A' ? 'A' : 'B')] || [];
-      const shown = locs.slice(0, 30).join(', ') + (locs.length > 30 ? ` 等${locs.length}处` : '');
-      ws.addRow({ id: m.raw, cnt: m['count' + (label === '文件A' ? 'A' : 'B')], loc: shown });
-    });
-  }
-
-  // 用 SheetJS 以兼容模式读取并转换为 ExcelJS 工作簿（不保留样式/合并/列宽，但数据、格式值都在）
-  function convertWithSheetJS(data, note) {
-    const wbOld = XLSX.read(data, { type: 'array', cellDates: true });
-    const wb = new ExcelJS.Workbook();
-    wbOld.SheetNames.forEach(name => {
-      const ws = wb.addWorksheet(name);
-      const rows = XLSX.utils.sheet_to_json(wbOld.Sheets[name], { header: 1, defval: null, raw: true });
-      rows.forEach(r => ws.addRow(r));
-    });
-    wb.__converted = true;   // 标记：兼容模式读取，导出时存为 .xlsx
-    wb.__note = note;        // 记录为何走兼容模式，供日志提示
-    return wb;
-  }
-
-  // 读取文件为 ExcelJS 工作簿：
-  //   .xls 旧格式 / 标准解析失败的文件 → 自动兜底换 SheetJS 兼容模式读取
-  //   （部分系统导出的 xlsx 内部 XML 非标准，exceljs 解析会报 reading 'sheets' 之类错误）
-  async function readWorkbook(file) {
-    const data = await file.arrayBuffer();
-    if (!data || !data.byteLength) throw new Error('文件内容为空（0 字节），可能是下载或传输不完整，请重新获取该文件');
-    if (/\.xls$/i.test(file.name) && !/\.xlsx$/i.test(file.name)) {
-      return convertWithSheetJS(data, '文件为 .xls 旧格式，已通过兼容模式读取（原有样式不保留，导出时将存为 .xlsx）');
-    }
-    try {
-      const wb = new ExcelJS.Workbook();
-      await wb.xlsx.load(data);
-      return wb;
-    } catch (err) {
-      return convertWithSheetJS(data, '标准解析失败（' + (err && err.message ? err.message : err) + '），已改用兼容模式读取（原有样式不保留，导出时将存为 .xlsx）');
-    }
-  }
-
-  // 导出前清除所有条件格式：旧文件里的重复值高亮等规则会和本次高亮叠加显示，造成"乱涂色"观感
-  async function stripConditionalFormatting(buffer) {
-    const zip = await JSZip.loadAsync(buffer);
-    const targets = [];
-    zip.forEach((rel, entry) => {
-      if (/^xl\/worksheets\/sheet\d+\.xml$/.test(entry.name)) targets.push(entry.name);
-    });
-    for (const name of targets) {
-      let xml = await zip.file(name).async('string');
-      if (!/conditionalFormatting/.test(xml)) continue;
-      xml = xml.replace(/<conditionalFormatting\b[^>]*>[\s\S]*?<\/conditionalFormatting>/g, '');
-      xml = xml.replace(/<x14:conditionalFormattings\b[^>]*>[\s\S]*?<\/x14:conditionalFormattings>/g, '');
-      zip.file(name, xml);
-    }
-    return zip.generateAsync({ type: 'arraybuffer' });
-  }
-
-  // 解析手动指定列：输入 "数据=C; 汇总=D" -> Map(小写sheet名 -> 列号)
-  function parseColOverride(str) {
-    const map = new Map();
-    if (!str) return map;
-    str.split(/[;；]/).forEach(part => {
-      const m = part.split('=');
-      if (m.length !== 2) return;
-      const sheet = m[0].trim().toLowerCase();
-      const letters = m[1].trim().toUpperCase();
-      if (!/^[A-Z]{1,3}$/.test(letters)) return;
-      let col = 0;
-      for (const ch of letters) col = col * 26 + (ch.charCodeAt(0) - 64);
-      if (sheet && col > 0) map.set(sheet, col);
-    });
-    return map;
-  }
-
-  // ==================== CORE-END ====================
-
-  // ---------- 页面层 ----------
-  let gMatched = [], gOnlyA = [], gOnlyB = [];   // 供排序 / 筛选 / CSV 使用
-  let gSortKey = 'id', gSortAsc = true;
-
-  function log(msg) {
-    const div = document.getElementById('log');
-    const t = new Date().toTimeString().slice(0, 8);
-    div.innerHTML += `<span class="t">[${t}]</span> ${msg}<br>`;
-    div.scrollTop = div.scrollHeight;
-  }
-
-  function resolveColumns(workbook, keywords, scanRows, override, label) {
-    const map = new Map();
-    workbook.worksheets.forEach(sheet => {
-      const ov = override.get(sheet.name.toLowerCase());
-      if (ov) {
-        map.set(sheet.name, { col: ov, headerRow: 0, score: -1, matched: '(手动指定)' });
-        log(`  ${label} - Sheet "${sheet.name}"：按手动指定取第 ${ov} 列`);
-        return;
-      }
-      const found = findOrderColumn(sheet, keywords, scanRows);
-      if (found) {
-        map.set(sheet.name, found);
-        log(`  ${label} - Sheet "${sheet.name}"：命中列标题 "${found.matched}"（第 ${found.col} 列，表头第 ${found.headerRow} 行，置信分 ${found.score}）`);
-      } else {
-        log(`  ${label} - Sheet "${sheet.name}"：未找到指令号列，跳过该 Sheet`);
-      }
-    });
-    return map;
-  }
-
-  function locText(locs) {
-    if (!locs || !locs.length) return '';
-    const s = locs.slice(0, 30).join(', ');
-    return locs.length > 30 ? s + ` 等${locs.length}处` : s;
-  }
-
-  function sortSummary(key) {
-    if (gSortKey === key) gSortAsc = !gSortAsc; else { gSortKey = key; gSortAsc = true; }
-    renderSummaryTable();
-  }
-
-  function renderSummaryTable() {
-    const body = document.getElementById('sumBody');
-    const filter = normalizeOrder(document.getElementById('sumFilter').value || '');
-    let rows = gMatched.filter(m => !filter || m.id.includes(filter));
-    const dir = gSortAsc ? 1 : -1;
-    rows = rows.slice().sort((a, b) => {
-      let r;
-      if (gSortKey === 'id') r = a.id.localeCompare(b.id, 'zh-Hans-CN', { numeric: true });
-      else r = a[gSortKey] - b[gSortKey];
-      return r * dir || (a.id < b.id ? -1 : 1);
-    });
-    ['id', 'countA', 'countB'].forEach(k => {
-      document.getElementById('sortMark-' + k).textContent = k === gSortKey ? (gSortAsc ? '↑' : '↓') : '';
-    });
-    const MAX_RENDER = 5000;
-    let html = '';
-    for (let i = 0; i < Math.min(rows.length, MAX_RENDER); i++) {
-      const m = rows[i];
-      html += `<tr><td class="id" title="${escapeHtml(m.raw)}">${escapeHtml(m.id)}</td>` +
-        `<td class="c">${m.countA}</td><td class="c">${m.countB}</td>` +
-        `<td title="${escapeHtml(locText(m.locA))}">${escapeHtml(locText(m.locA))}</td>` +
-        `<td title="${escapeHtml(locText(m.locB))}">${escapeHtml(locText(m.locB))}</td></tr>`;
-    }
-    body.innerHTML = html;
-    document.getElementById('sumCount').textContent =
-      `共 ${rows.length} 个匹配指令号` + (rows.length > MAX_RENDER ? `（仅渲染前 ${MAX_RENDER} 行，完整请下载 CSV）` : '');
-  }
-
-  function escapeHtml(s) {
-    return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-  }
-
-  function csvEscape(s) {
-    s = String(s === undefined || s === null ? '' : s);
-    return /[",\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
-  }
-
-  function makeCsv(rows, headers) {
-    const lines = [headers.map(csvEscape).join(',')];
-    rows.forEach(r => lines.push(r.map(csvEscape).join(',')));
-    return '﻿' + lines.join('\r\n');
-  }
-
-  function setCsvLink(elId, filename, text) {
-    const blob = new Blob([text], { type: 'text/csv;charset=utf-8' });
-    const a = document.getElementById(elId);
-    if (a.dataset.url) URL.revokeObjectURL(a.dataset.url);
-    const url = URL.createObjectURL(blob);
-    a.dataset.url = url;
-    a.href = url;
-    a.download = filename;
-  }
-
-  function renderLegend(colorMap, mode) {
-    const panel = document.getElementById('legend-panel');
-    const div = document.getElementById('legend');
-    if (!colorMap.size) { panel.style.display = 'none'; return; }
-    panel.style.display = 'block';
-    let html = `<b>${mode === 'uniform' ? '统一高亮色：' : '颜色图例（' + colorMap.size + ' 个匹配指令号）：'}</b><br>`;
-    let n = 0;
-    for (const [id, argb] of colorMap) {
-      const css = '#' + argb.slice(2);
-      html += `<span class="legend-item"><span class="legend-swatch" style="background:${css}"></span>${escapeHtml(id)}</span>`;
-      if (++n >= 300) { html += `<br>…共 ${colorMap.size} 个，仅显示前 300 个，完整对应关系见「匹配汇总」Sheet`; break; }
-    }
-    div.innerHTML = html;
-  }
-
-  // ---------- 主流程 ----------
-  async function process() {
-    const fileA = document.getElementById('fileA').files[0];
-    const fileB = document.getElementById('fileB').files[0];
-    if (!fileA || !fileB) { alert('请先选择两个 Excel 文件（.xlsx 或 .xls）'); return; }
-
-    const keywords = (document.getElementById('keywords').value.trim() || '指令号')
-      .split(/[,，]/).map(s => s.trim()).filter(Boolean);
-    const scanRows = Math.max(1, Math.min(50, parseInt(document.getElementById('scanRows').value, 10) || 10));
-    const colorMode = document.getElementById('colorMode').value;
-    const uniformColor = document.getElementById('uniformColor').value;
-    const appendSummary = document.getElementById('appendSummary').checked;
-    const stripCF = document.getElementById('stripCF').checked;
-    const override = parseColOverride(document.getElementById('colOverride').value);
-
-    ['log', 'legend', 'downloads'].forEach(id => document.getElementById(id).innerHTML = '');
-    document.getElementById('stats').className = '';
-    document.getElementById('summary-wrap').className = '';
-    document.getElementById('dl-panel').style.display = 'none';
-    gMatched = []; gOnlyA = []; gOnlyB = [];
-
-    const btn = document.getElementById('runBtn');
-    btn.disabled = true; btn.textContent = '处理中…';
-    try {
-      log('正在读取文件 A …');
-      const wbA = await readWorkbook(fileA);
-      if (wbA.__converted) log('  提示：' + wbA.__note);
-
-      log('正在读取文件 B …');
-      const wbB = await readWorkbook(fileB);
-      if (wbB.__converted) log('  提示：' + wbB.__note);
-
-      log('正在识别各 Sheet 的指令号列 …');
-      log('文件 A：');
-      const colMapA = resolveColumns(wbA, keywords, scanRows, override, '文件A');
-      log('文件 B：');
-      const colMapB = resolveColumns(wbB, keywords, scanRows, override, '文件B');
-
-      if (colMapA.size === 0 && colMapB.size === 0) {
-        alert('两个文件都没有识别到指令号列，请检查关键词或用手动指定列。');
-        return;
-      }
-      if (stripCF) log('设置已勾选：导出时将清除原文件中的条件格式，避免旧规则与本次高亮叠加显示');
-
-      log('正在收集文件 A 的指令号 …');
-      const mapA = collectOrders(wbA, colMapA);
-      log(`文件 A 共 ${mapA.size} 个唯一指令号`);
-
-      log('正在收集文件 B 的指令号 …');
-      const mapB = collectOrders(wbB, colMapB);
-      log(`文件 B 共 ${mapB.size} 个唯一指令号`);
-
-      const { matched, onlyA, onlyB } = diffOrders(mapA, mapB);
-      gMatched = matched; gOnlyA = onlyA; gOnlyB = onlyB;
-      log(`匹配到相同指令号：${matched.length} 个；仅文件 A 有：${onlyA.length} 个；仅文件 B 有：${onlyB.length} 个`);
-
-      if (matched.length === 0) {
-        alert('没有匹配到相同指令号。页面下方仍提供未匹配清单 CSV，可下载核对是否存在规范化差异之外的真正不同。');
-      }
-
-      const stats = document.getElementById('stats');
-      stats.className = 'on';
-      document.getElementById('stMatched').textContent = matched.length;
-      document.getElementById('stOnlyA').textContent = onlyA.length;
-      document.getElementById('stOnlyB').textContent = onlyB.length;
-
-      const colorMap = buildColorMap(matched.map(m => m.id), colorMode, uniformColor);
-      renderLegend(colorMap, colorMode);
-
-      let totalCells = 0;
-      if (matched.length > 0) {
-        log('正在高亮文件 A 中匹配的指令号 …');
-        const detailsA = highlightWorkbook(wbA, colMapA, colorMap, '文件A');
-        log('正在高亮文件 B 中匹配的指令号 …');
-        const detailsB = highlightWorkbook(wbB, colMapB, colorMap, '文件B');
-        totalCells = detailsA.length + detailsB.length;
-        document.getElementById('stCells').textContent = totalCells;
-
-        log(`<b>===== 高亮单元格明细（共 ${totalCells} 个，前 1000 条） =====</b>`);
-        const all = detailsA.concat(detailsB);
-        all.slice(0, 1000).forEach((d, i) => {
-          log(`[${i + 1}] ${d.label} - Sheet "${d.sheetName}" 第 ${d.row} 行：${d.text}`);
-        });
-        if (all.length > 1000) log(`… 其余 ${all.length - 1000} 条省略，完整明细见导出的「匹配汇总」Sheet / 页面表格 …`);
-      }
-
-      if (appendSummary && matched.length > 0) {
-        appendSummarySheet(wbA, matched, '文件A');
-        appendSummarySheet(wbB, matched, '文件B');
-        log('已在两个文件中追加「匹配汇总」Sheet');
-      }
-
-      // 页面汇总表 + CSV
-      document.getElementById('summary-wrap').className = 'on';
-      renderSummaryTable();
-      setCsvLink('csvMatched', '匹配清单.csv', makeCsv(
-        matched.map(m => [m.raw, m.countA, m.countB, locText(m.locA), locText(m.locB)]),
-        ['指令号', '文件A出现次数', '文件B出现次数', '文件A位置', '文件B位置']));
-      setCsvLink('csvOnlyA', '仅文件A有.csv', makeCsv(
-        onlyA.map(m => [m.raw, m.countA, locText(m.locA)]), ['指令号', '文件A出现次数', '文件A位置']));
-      setCsvLink('csvOnlyB', '仅文件B有.csv', makeCsv(
-        onlyB.map(m => [m.raw, m.countB, locText(m.locB)]), ['指令号', '文件B出现次数', '文件B位置']));
-
-      // 导出下载
-      log('正在生成导出文件 …');
-      const dl = document.getElementById('downloads');
-      dl.innerHTML = '';
-      const mk = (wb, file, tag) => {
-        const ext = wb.__converted ? '.xlsx' : (file.name.match(/\.xlsx?$/i) || ['.xlsx'])[0];
-        const base = file.name.replace(/\.xlsx?$/i, '');
-        const a = document.createElement('a');
-        a.href = '#'; a.textContent = `下载${tag}（已高亮）`;
-        dl.appendChild(a);
-        wb.xlsx.writeBuffer({ useSharedStrings: false }).then(async buf => {
-          if (stripCF) buf = await stripConditionalFormatting(buf);
-          const url = URL.createObjectURL(new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }));
-          a.href = url; a.download = base + '_匹配高亮' + (ext === '.xls' ? '.xlsx' : ext);
-        });
-      };
-      mk(wbA, fileA, '文件 A');
-      mk(wbB, fileB, '文件 B');
-      document.getElementById('dl-panel').style.display = 'block';
-
-      log('全部完成！');
-    } catch (err) {
-      console.error(err);
-      log('发生错误：' + (err && err.message ? err.message : err));
-      alert('处理失败，请查看日志。常见原因：文件被占用、格式损坏，或选择了不支持的文件类型。');
-    } finally {
-      btn.disabled = false; btn.textContent = '开始匹配并高亮';
-    }
-  }
-
-  document.getElementById('colorMode').addEventListener('change', e => {
-    document.getElementById('uniformColorRow').style.display = e.target.value === 'uniform' ? 'flex' : 'none';
+/* 合并单元格解析 */
+const mergeCache=new WeakMap();
+function colToNum(letters){let n=0;for(const ch of letters.toUpperCase())n=n*26+(ch.charCodeAt(0)-64);return n;}
+function numToCol(n){let s='';while(n>0){const m=(n-1)%26;s=String.fromCharCode(65+m)+s;n=(n-m-1)/26;}return s;}
+function getMergeResolver(sheet){
+  let mr=mergeCache.get(sheet);if(mr)return mr;
+  mr={masterOf:new Map(),rangeOf:new Map()};
+  const merges=(sheet.model&&sheet.model.merges)||[];
+  merges.forEach(range=>{
+    const m=String(range).match(/^([A-Za-z]+)(\d+):([A-Za-z]+)(\d+)$/);if(!m)return;
+    const c1=colToNum(m[1]),r1=parseInt(m[2],10),c2=colToNum(m[3]),r2=parseInt(m[4],10);
+    const rg={r1,c1,r2,c2};mr.rangeOf.set(r1+':'+c1,rg);
+    for(let r=r1;r<=r2;r++)for(let c=c1;c<=c2;c++)mr.masterOf.set(r+':'+c,{row:r1,col:c1});
   });
-  </script>
+  mergeCache.set(sheet,mr);return mr;
+}
+function resolveMaster(mr,r,c){
+  const m=mr.masterOf.get(r+':'+c);return m?{row:m.row,col:m.col}:{row:r,col:c};
+}
+
+/* 读工作簿 */
+function convertWithSheetJS(data,note){
+  const wbOld=XLSX.read(data,{type:'array',cellDates:true});
+  const wb=new ExcelJS.Workbook();
+  wbOld.SheetNames.forEach(name=>{
+    const ws=wb.addWorksheet(name);
+    const rows=XLSX.utils.sheet_to_json(wbOld.Sheets[name],{header:1,defval:null,raw:true});
+    rows.forEach(r=>ws.addRow(r));
+  });
+  wb.__converted=true;wb.__note=note;return wb;
+}
+async function readWorkbook(file){
+  const data=await file.arrayBuffer();
+  if(!data||!data.byteLength)throw new Error('文件内容为空（0 字节）');
+  if(/\.xls$/i.test(file.name)&&!/\.xlsx$/i.test(file.name)){
+    return convertWithSheetJS(data,'.xls 旧格式，已用兼容模式读取（样式不保留，导出为 .xlsx）');
+  }
+  try{
+    const wb=new ExcelJS.Workbook();
+    await wb.xlsx.load(data);
+    return wb;
+  }catch(err){
+    return convertWithSheetJS(data,'标准解析失败（'+(err&&err.message?err.message:err)+'），已用兼容模式读取');
+  }
+}
+
+/* 清除条件格式 */
+async function stripCF(buffer){
+  const zip=await JSZip.loadAsync(buffer);
+  const targets=[];
+  zip.forEach((rel,entry)=>{if(/^xl\/worksheets\/sheet\d+\.xml$/.test(entry.name))targets.push(entry.name);});
+  for(const name of targets){
+    let xml=await zip.file(name).async('string');
+    if(!/conditionalFormatting/.test(xml))continue;
+    xml=xml.replace(/<conditionalFormatting\b[^>]*>[\s\S]*?<\/conditionalFormatting>/g,'');
+    xml=xml.replace(/<x14:conditionalFormattings\b[^>]*>[\s\S]*?<\/x14:conditionalFormattings>/g,'');
+    zip.file(name,xml);
+  }
+  return zip.generateAsync({type:'arraybuffer'});
+}
+
+/* 单元格填充 */
+function setFill(cell,argb){
+  cell.style=Object.assign({},cell.style,{fill:{type:'pattern',pattern:'solid',fgColor:{argb}}});
+}
+
+/* ==================================================================
+   二、模式一：集合匹配
+   ================================================================== */
+const KEY_SEP='\u0001';
+function buildRowKey(sheet,mr,r,cols,headerRow){
+  const raws=[];
+  for(const c of cols){
+    const p=resolveMaster(mr,r,c);
+    if(p.row<r)return null;
+    if(p.row<=headerRow){raws.push('');continue;}
+    raws.push(getCellText(sheet.getRow(p.row).getCell(p.col)));
+  }
+  const norms=raws.map(t=>normalize(t));
+  if(norms.every(t=>!t))return null;
+  return {id:norms.join(KEY_SEP),label:raws.map(t=>String(t==null?'':t).trim()).join(' | ')};
+}
+const MAX_LOCS=1000;
+function collectKeys(wb,cfgs){
+  const map=new Map();
+  wb.worksheets.forEach(sheet=>{
+    const cfg=cfgs.get(sheet.name);if(!cfg)return;
+    const {headerRow,cols}=cfg;
+    const mr=getMergeResolver(sheet);
+    const rowCount=sheet.rowCount||0;
+    for(let r=headerRow+1;r<=rowCount;r++){
+      const key=buildRowKey(sheet,mr,r,cols,headerRow);
+      if(!key)continue;
+      let e=map.get(key.id);
+      if(!e){e={label:key.label,count:0,locs:[]};map.set(key.id,e);}
+      e.count++;
+      if(e.locs.length<MAX_LOCS)e.locs.push(sheet.name+'!R'+r);
+    }
+  });
+  return map;
+}
+function diffOrders(mapA,mapB){
+  const matched=[],onlyA=[],onlyB=[];
+  for(const [id,ea] of mapA){
+    const eb=mapB.get(id);
+    if(eb)matched.push({id,label:ea.label||eb.label,countA:ea.count,countB:eb.count,locA:ea.locs,locB:eb.locs});
+    else onlyA.push({id,label:ea.label,countA:ea.count,countB:0,locA:ea.locs,locB:[]});
+  }
+  for(const [id,eb] of mapB){
+    if(!mapA.has(id))onlyB.push({id,label:eb.label,countA:0,countB:eb.count,locA:[],locB:eb.locs});
+  }
+  const cmp=(x,y)=>x.label.localeCompare(y.label,'zh-Hans-CN',{numeric:true});
+  matched.sort(cmp);onlyA.sort(cmp);onlyB.sort(cmp);
+  return {matched,onlyA,onlyB};
+}
+function hslToArgb(h,s,l){
+  const c=(1-Math.abs(2*l-1))*s,x=c*(1-Math.abs((h/60)%2-1)),m=l-c/2;
+  let r,g,b;
+  if(h<60)[r,g,b]=[c,x,0];else if(h<120)[r,g,b]=[x,c,0];else if(h<180)[r,g,b]=[0,c,x];
+  else if(h<240)[r,g,b]=[0,x,c];else if(h<300)[r,g,b]=[x,0,c];else[r,g,b]=[c,0,x];
+  const toHex=v=>Math.round((v+m)*255).toString(16).padStart(2,'0').toUpperCase();
+  return 'FF'+toHex(r)+toHex(g)+toHex(b);
+}
+function hashStr(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.codePointAt(i);h=Math.imul(h,16777619);}return h>>>0;}
+function buildColorMap(ids,mode,uniformHex){
+  const cm=new Map();
+  if(mode==='uniform'){
+    const hex=(uniformHex||'#ffe08a').replace('#','').toUpperCase();
+    const argb='FF'+hex;ids.forEach(id=>cm.set(id,argb));return cm;
+  }
+  ids.forEach(id=>{
+    const h=hashStr(id);
+    const hue=(h*137.508)%360,light=0.82-((h>>>9)%4)*0.08;
+    cm.set(id,hslToArgb(hue,0.55,light));
+  });
+  return cm;
+}
+function highlightSet(wb,cfgs,colorMap){
+  const details=[];
+  wb.worksheets.forEach(sheet=>{
+    const cfg=cfgs.get(sheet.name);if(!cfg)return;
+    const {headerRow,cols}=cfg;
+    const mr=getMergeResolver(sheet);
+    const done=new Set();
+    const paint=(rowIdx,colIdx,argb)=>{
+      const mk=rowIdx+':'+colIdx;if(done.has(mk))return false;
+      const rg=mr.rangeOf.get(mk);
+      if(rg){
+        for(let rr=rg.r1;rr<=rg.r2;rr++)for(let cc=rg.c1;cc<=rg.c2;cc++){
+          const k=rr+':'+cc;if(done.has(k))continue;
+          setFill(sheet.getRow(rr).getCell(cc),argb);done.add(k);
+        }
+      }else{setFill(sheet.getRow(rowIdx).getCell(colIdx),argb);done.add(mk);}
+      return true;
+    };
+    const rowCount=sheet.rowCount||0;
+    for(let r=headerRow+1;r<=rowCount;r++){
+      const key=buildRowKey(sheet,mr,r,cols,headerRow);if(!key)continue;
+      const argb=colorMap.get(key.id);if(!argb)continue;
+      let painted=false;
+      for(const c of cols){
+        const p=resolveMaster(mr,r,c);if(p.row<=headerRow)continue;
+        if(paint(p.row,p.col,argb))painted=true;
+      }
+      if(painted)details.push({sheetName:sheet.name,row:r,text:key.label});
+    }
+  });
+  return details;
+}
+function appendSummarySet(wb,matched,label){
+  let name='匹配汇总',n=2;
+  while(wb.getWorksheet(name))name='匹配汇总_'+(n++);
+  const ws=wb.addWorksheet(name);
+  const isA=label==='文件A';
+  ws.columns=[
+    {header:'匹配键',key:'id',width:40},
+    {header:label+'出现次数',key:'cnt',width:14},
+    {header:label+'位置（Sheet!行号）',key:'loc',width:80},
+  ];
+  ws.getRow(1).font={bold:true};
+  ws.getRow(1).fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFE8F3EF'}};
+  matched.forEach(m=>{
+    const locs=(isA?m.locA:m.locB)||[];
+    const shown=locs.slice(0,30).join(', ')+(locs.length>30?' 等'+locs.length+'处':'');
+    ws.addRow({id:m.label,cnt:isA?m.countA:m.countB,loc:shown});
+  });
+}
+
+/* ==================================================================
+   三、模式二：查值核对
+   ================================================================== */
+
+/* 主表被展平成规则 */
+function buildRules(wb,cfgMap,shape){
+  const rules=[];
+  wb.worksheets.forEach(sheet=>{
+    const c=cfgMap.get(sheet.name);if(!c||!c.enabled)return;
+    const {headerRow}=c;if(headerRow==null)return;
+    const mr=getMergeResolver(sheet);
+    const rowCount=sheet.rowCount||0;
+
+    if(shape==='matrix'){
+      if(c.regionCol==null)return;
+      const intervals=[];
+      c.intervalCols.forEach((iv,col)=>{
+        if(iv.valid&&(iv.min!=null||iv.max!=null))intervals.push({col,min:iv.min,max:iv.max,raw:iv.raw});
+      });
+      if(intervals.length===0)return;
+      for(let r=headerRow+1;r<=rowCount;r++){
+        const rp=resolveMaster(mr,r,c.regionCol);
+        if(rp.row<r)continue;
+        if(rp.row<=headerRow)continue;
+        const regionRaw=getCellText(sheet.getRow(rp.row).getCell(rp.col));
+        const regionNorm=normalize(regionRaw);
+        if(!regionNorm)continue;
+        for(const iv of intervals){
+          const cp=resolveMaster(mr,r,iv.col);
+          const priceRaw=(cp.row<=headerRow)?'':getCellText(sheet.getRow(cp.row).getCell(cp.col));
+          rules.push({
+            keys:[
+              {value:regionNorm,raw:regionRaw,mode:'exact'},
+              {value:[iv.min,iv.max],raw:iv.raw,mode:'range'}
+            ],
+            value:{raw:priceRaw,num:extractNumber(priceRaw)},
+            source:{sheet:sheet.name,row:r},
+            label:regionRaw+' | '+iv.raw
+          });
+        }
+      }
+    }else{
+      const keyCols=c.keyCols||[];
+      if(keyCols.length===0||c.valueCol==null)return;
+      for(let r=headerRow+1;r<=rowCount;r++){
+        const kvs=[];let empty=true;
+        let skip=false;
+        for(const kc of keyCols){
+          if(kc.col==null){skip=true;break;}
+          const p=resolveMaster(mr,r,kc.col);
+          if(p.row<r){skip=true;break;}
+          const v=(p.row<=headerRow)?'':getCellText(sheet.getRow(p.row).getCell(p.col));
+          const norm=normalize(v);
+          kvs.push({raw:v,norm,mode:kc.mode});
+          if(norm)empty=false;
+        }
+        if(skip||empty)continue;
+        const vp=resolveMaster(mr,r,c.valueCol);
+        const vRaw=(vp.row<=headerRow)?'':getCellText(sheet.getRow(vp.row).getCell(vp.col));
+        rules.push({
+          keys:kvs.map(k=>({value:k.norm,raw:k.raw,mode:k.mode})),
+          value:{raw:vRaw,num:extractNumber(vRaw)},
+          source:{sheet:sheet.name,row:r},
+          label:kvs.map(k=>k.raw).join(' | ')
+        });
+      }
+    }
+  });
+  return rules;
+}
+
+function matchOne(lookupVal,ruleKey){
+  if(ruleKey.mode==='range'){
+    const n=extractNumber(lookupVal);if(n===null)return false;
+    const lo=ruleKey.value[0]===null?-Infinity:ruleKey.value[0];
+    const hi=ruleKey.value[1]===null?Infinity:ruleKey.value[1];
+    return n>=lo&&n<hi;
+  }
+  const lv=normalize(lookupVal);
+  if(!lv)return false;
+  const rv=ruleKey.value||'';
+  if(ruleKey.mode==='exact')return lv===rv;
+  if(ruleKey.mode==='prefix')return rv!==''&&lv.startsWith(rv);
+  if(ruleKey.mode==='contains')return rv!==''&&lv.includes(rv);
+  return false;
+}
+function findRule(rules,lookupKeys){
+  for(const r of rules){
+    if(r.keys.length!==lookupKeys.length)continue;
+    let ok=true;
+    for(let i=0;i<r.keys.length;i++){
+      if(!matchOne(lookupKeys[i],r.keys[i])){ok=false;break;}
+    }
+    if(ok)return r;
+  }
+  return null;
+}
+
+function crossCheck(wbB,cfgB,rules,tolerance){
+  const results=[];
+  wbB.worksheets.forEach(sheet=>{
+    const c=cfgB.get(sheet.name);if(!c||!c.enabled)return;
+    const {headerRow}=c;if(headerRow==null)return;
+    const keyCols=(c.keyCols||[]).filter(x=>x!=null);
+    if(keyCols.length===0||c.valueCol==null)return;
+    const mr=getMergeResolver(sheet);
+    const rowCount=sheet.rowCount||0;
+    for(let r=headerRow+1;r<=rowCount;r++){
+      const rawKeys=[];let empty=true;
+      for(const col of keyCols){
+        const p=resolveMaster(mr,r,col);
+        const v=(p.row<=headerRow)?'':getCellText(sheet.getRow(p.row).getCell(p.col));
+        rawKeys.push(v);if(v)empty=false;
+      }
+      const vp=resolveMaster(mr,r,c.valueCol);
+      const bValRaw=(vp.row<=headerRow)?'':getCellText(sheet.getRow(vp.row).getCell(vp.col));
+      if(bValRaw)empty=false;
+      if(empty)continue;
+
+      const res={
+        sheetB:sheet.name,rowB:r,
+        rawKeys,bValRaw,bNum:extractNumber(bValRaw),
+        matchedLabel:'',aValRaw:'',aNum:null,
+        status:'',diff:null
+      };
+      const hit=findRule(rules,rawKeys);
+      if(!hit){res.status='主表未找到';}
+      else{
+        res.matchedLabel=hit.label;
+        res.aValRaw=hit.value.raw;
+        res.aNum=hit.value.num;
+        if(res.bNum===null){res.status='明细值非数值';}
+        else if(res.aNum===null){res.status='主表值非数值';}
+        else{
+          const d=res.bNum-res.aNum;
+          res.diff=d;
+          res.status=Math.abs(d)<=tolerance?'一致':'不一致';
+        }
+      }
+      results.push(res);
+    }
+  });
+  return results;
+}
+
+const C_GOOD='FFC6EFCE',C_BAD='FFFFC7CE',C_WARN='FFFFEB9C';
+function highlightLookup(wb,results,cfgB,onMiss){
+  const byKey=new Map();
+  for(const r of results)byKey.set(r.sheetB+'!'+r.rowB,r);
+  wb.worksheets.forEach(sheet=>{
+    const c=cfgB.get(sheet.name);if(!c||!c.enabled)return;
+    const {headerRow}=c;if(headerRow==null)return;
+    const keyCols=(c.keyCols||[]).filter(x=>x!=null);
+    if(keyCols.length===0||c.valueCol==null)return;
+    const mr=getMergeResolver(sheet);
+    for(let r=1;r<=(sheet.rowCount||0);r++){
+      const res=byKey.get(sheet.name+'!'+r);if(!res)continue;
+      let color;
+      if(res.status==='一致')color=C_GOOD;
+      else if(res.status==='不一致')color=C_BAD;
+      else color=(onMiss==='skip')?null:C_WARN;
+      if(!color)continue;
+      for(const col of [...keyCols,c.valueCol]){
+        const p=resolveMaster(mr,r,col);
+        const rg=mr.rangeOf.get(p.row+':'+p.col);
+        if(rg){
+          for(let rr=rg.r1;rr<=rg.r2;rr++)for(let cc=rg.c1;cc<=rg.c2;cc++){
+            setFill(sheet.getRow(rr).getCell(cc),color);
+          }
+        }else setFill(sheet.getRow(p.row).getCell(p.col),color);
+      }
+    }
+  });
+}
+
+function appendSummaryLookup(wb,results){
+  let name='核对汇总',n=2;
+  while(wb.getWorksheet(name))name='核对汇总_'+(n++);
+  const ws=wb.addWorksheet(name);
+  ws.columns=[
+    {header:'Sheet',key:'s',width:16},
+    {header:'行号',key:'r',width:8},
+    {header:'查找键',key:'keys',width:36},
+    {header:'明细值',key:'bv',width:16},
+    {header:'命中规则',key:'hit',width:36},
+    {header:'主表值',key:'av',width:16},
+    {header:'结果',key:'st',width:14},
+    {header:'差值',key:'diff',width:12}
+  ];
+  ws.getRow(1).font={bold:true};
+  ws.getRow(1).fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFE8F3EF'}};
+  for(const r of results){
+    ws.addRow({
+      s:r.sheetB,r:r.rowB,
+      keys:r.rawKeys.join(' | '),
+      bv:r.bNum===null?r.bValRaw:r.bNum,
+      hit:r.matchedLabel,
+      av:r.aNum===null?r.aValRaw:r.aNum,
+      st:r.status,
+      diff:r.diff===null?'':r.diff
+    });
+  }
+}
+
+/* ==================================================================
+   四、全局状态
+   ================================================================== */
+const S={
+  mode:'set',
+  shape:'matrix',  // 主表形态：matrix / rules
+  files:{A:{wb:null,file:null},B:{wb:null,file:null}},
+  setCfg:{A:new Map(),B:new Map()},
+  lookupCfg:{A:new Map(),B:new Map()},
+  results:{set:{matched:[],onlyA:[],onlyB:[]},lookup:[]}
+};
+let gSortKey='label',gSortAsc=true;
+
+/* 初始化配置 */
+function initCfgs(){
+  const {A,B}=S.files;
+  S.setCfg={A:new Map(),B:new Map()};
+  S.lookupCfg={A:new Map(),B:new Map()};
+  A.wb.worksheets.forEach(sh=>{
+    S.setCfg.A.set(sh.name,{enabled:true,headerRow:null,cols:new Set()});
+    S.lookupCfg.A.set(sh.name,{
+      enabled:true,headerRow:null,
+      regionCol:null,           // matrix
+      intervalCols:new Map(),   // matrix: col -> {min,max,valid,raw}
+      keyCols:[],               // rules: [{col,mode}]
+      valueCol:null             // rules
+    });
+  });
+  B.wb.worksheets.forEach(sh=>{
+    S.setCfg.B.set(sh.name,{enabled:true,headerRow:null,cols:new Set()});
+    S.lookupCfg.B.set(sh.name,{
+      enabled:true,headerRow:null,
+      keyCols:[],               // [col,...]
+      valueCol:null
+    });
+  });
+}
+
+/* ==================================================================
+   五、日志
+   ================================================================== */
+function log(html){
+  const div=document.getElementById('log');
+  const t=new Date().toTimeString().slice(0,8);
+  div.innerHTML+='<span class="t">['+t+']</span> '+html+'<br>';
+  div.scrollTop=div.scrollHeight;
+}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function trunc(s,n){s=String(s);return s.length>n?s.slice(0,n-1)+'…':s;}
+
+/* ==================================================================
+   六、模式切换
+   ================================================================== */
+document.getElementById('modeGrid').addEventListener('click',e=>{
+  const card=e.target.closest('.mode-card');if(!card)return;
+  const m=card.dataset.mode;if(m===S.mode)return;
+  S.mode=m;
+  document.querySelectorAll('.mode-card').forEach(c=>c.classList.toggle('active',c.dataset.mode===m));
+  card.querySelector('input').checked=true;
+  document.getElementById('hintA').textContent=m==='set'?'可多 Sheet，支持 .xlsx / .xls':'主表：矩阵表（地区×重量区间→单价）或规则表';
+  document.getElementById('hintB').textContent=m==='set'?'可多 Sheet，支持 .xlsx / .xls':'明细表：含查找键列 + 待比对的值列';
+  document.getElementById('settingsSet').style.display=m==='set'?'grid':'none';
+  document.getElementById('settingsLookup').style.display=m==='set'?'none':'grid';
+  renderConfigPanel();
+});
+
+/* ==================================================================
+   七、读文件
+   ================================================================== */
+async function readFiles(){
+  const fa=document.getElementById('fileA').files[0];
+  const fb=document.getElementById('fileB').files[0];
+  if(!fa||!fb){alert('请先选择两个 Excel 文件');return;}
+  const btn=document.getElementById('readBtn');
+  btn.disabled=true;btn.textContent='读取中…';
+  document.getElementById('log').innerHTML='';
+  document.getElementById('configPanel').innerHTML='';
+  document.getElementById('settingsPanel').style.display='none';
+  document.getElementById('runBtn').disabled=true;
+  document.getElementById('summary-wrap').className='';
+  document.getElementById('stats').className='';
+  document.getElementById('stats').innerHTML='';
+  document.getElementById('dl-panel').style.display='none';
+  document.getElementById('legend-panel').style.display='none';
+  try{
+    log('读取文件 A …');
+    const wbA=await readWorkbook(fa);
+    if(wbA.__converted)log('  '+wbA.__note);
+    log('读取文件 B …');
+    const wbB=await readWorkbook(fb);
+    if(wbB.__converted)log('  '+wbB.__note);
+    S.files={A:{wb:wbA,file:fa},B:{wb:wbB,file:fb}};
+    initCfgs();
+    renderConfigPanel();
+    document.getElementById('settingsPanel').style.display='block';
+    document.getElementById('runBtn').disabled=false;
+    log('读取完成。请在下方配置面板中人工指定表头行、选择列。');
+  }catch(err){
+    console.error(err);
+    log('读取失败：'+(err&&err.message?err.message:err));
+    alert('读取失败，请查看日志。');
+  }finally{
+    btn.disabled=false;btn.textContent='读取文件并解析';
+  }
+}
+
+/* ==================================================================
+   八、配置面板渲染
+   ================================================================== */
+function renderConfigPanel(){
+  const p=document.getElementById('configPanel');
+  if(!S.files.A.wb||!S.files.B.wb){p.innerHTML='';return;}
+  if(S.mode==='set')renderSetPanel(p);
+  else renderLookupPanel(p);
+}
+
+/* ---------- 集合匹配面板 ---------- */
+function renderSetPanel(p){
+  p.innerHTML='<section class="card"><h2 class="card-title"><span class="num">3</span>选择参与匹配的 Sheet 与列<span class="sub">集合匹配</span></h2>'+
+    '<div class="note" style="margin-bottom:14px">勾选 Sheet、填表头行号、勾选参与匹配的列（可多选）。所选列的值全部相同（忽略空格/全角/半角/隐藏字符）才算匹配。</div>'+
+    '<div style="font-size:13.5px;font-weight:700;color:var(--brand-2);margin:14px 0 8px">文件 A</div><div id="setSelA"></div>'+
+    '<div style="font-size:13.5px;font-weight:700;color:var(--brand-2);margin:14px 0 8px">文件 B</div><div id="setSelB"></div>'+
+    '</section>';
+  renderSetSelector('A');renderSetSelector('B');
+}
+function renderSetSelector(side){
+  const st=S.files[side];const c=document.getElementById('setSel'+side);
+  let html='';
+  st.wb.worksheets.forEach(sheet=>{
+    const cfg=S.setCfg[side].get(sheet.name);if(!cfg)return;
+    const nm=esc(sheet.name);
+    const hv=cfg.headerRow==null?'':cfg.headerRow;
+    html+='<div class="sheet-card'+(cfg.enabled?'':' off')+'" data-side="'+side+'" data-sheet="'+nm+'">'+
+      '<div class="sheet-head">'+
+        '<label class="cb-line"><input type="checkbox" class="sh-enable" data-side="'+side+'" data-sheet="'+nm+'" '+(cfg.enabled?'checked':'')+'> <span class="sheet-name">'+nm+'</span></label>'+
+        '<span style="font-size:12px;color:var(--ink-3)">表头行</span>'+
+        '<input type="number" class="sh-header" data-side="'+side+'" data-sheet="'+nm+'" value="'+hv+'" placeholder="必填" min="1" max="500">'+
+        '<button class="btn-mini" data-act="all" data-side="'+side+'" data-sheet="'+nm+'">全选列</button>'+
+        '<button class="btn-mini" data-act="none" data-side="'+side+'" data-sheet="'+nm+'">清空</button>'+
+        '<span class="sh-count">'+(cfg.headerRow==null?'<span class="warn-text">请先填写表头行号</span>':'已选 '+cfg.cols.size+' 列')+'</span>'+
+      '</div>'+
+      '<div class="col-list" data-side="'+side+'" data-sheet="'+nm+'">'+renderSetCols(side,sheet.name)+'</div>'+
+    '</div>';
+  });
+  c.innerHTML=html;
+}
+function renderSetCols(side,sheetName){
+  const sheet=S.files[side].wb.getWorksheet(sheetName);
+  const cfg=S.setCfg[side].get(sheetName);
+  if(!sheet||!cfg)return '';
+  if(cfg.headerRow==null)return '<span class="empty-hint">请先填写表头行号</span>';
+  const H=cfg.headerRow,mr=getMergeResolver(sheet);
+  const maxCol=Math.min(Math.max(sheet.columnCount||0,1),120);
+  let html='';
+  for(let c=1;c<=maxCol;c++){
+    const p=resolveMaster(mr,H,c);
+    const txt=getCellText(sheet.getRow(p.row).getCell(p.col)).trim();
+    const letter=numToCol(c);
+    const full=txt?letter+'：'+txt:letter;
+    const on=cfg.cols.has(c)?' on':'';
+    html+='<label class="col-chip'+on+'">'+
+      '<input type="checkbox" class="col-cb" data-side="'+side+'" data-sheet="'+esc(sheetName)+'" data-col="'+c+'" '+(cfg.cols.has(c)?'checked':'')+'>'+
+      '<span title="'+esc(full)+'">'+esc(trunc(full,28))+'</span></label>';
+  }
+  return html||'<span class="empty-hint">该行没有可用列</span>';
+}
+
+/* ---------- 查值核对面板 ---------- */
+function renderLookupPanel(p){
+  p.innerHTML='<section class="card"><h2 class="card-title"><span class="num">3</span>主表（文件 A）配置<span class="sub">查值核对 · 提供"规则/报价"</span></h2>'+
+    '<div class="note" style="margin-bottom:14px">选择主表形态：<b>矩阵表</b>（横向表头是重量区间，交叉格子是值）或 <b>规则表</b>（每行一条规则，包含若干键列和一个值列）。</div>'+
+    '<div class="cfg-row">'+
+      '<span class="lbl">主表形态</span>'+
+      '<select id="shapeSelect">'+
+        '<option value="matrix"'+(S.shape==='matrix'?' selected':'')+'>矩阵表（行键 × 区间列 → 值）</option>'+
+        '<option value="rules"'+(S.shape==='rules'?' selected':'')+'>规则表（多键列 + 值列）</option>'+
+      '</select>'+
+      '<span class="empty-hint">切换形态后主表已填配置会重置。</span>'+
+    '</div>'+
+    '<div id="mxSelA"></div></section>'+
+    '<section class="card"><h2 class="card-title"><span class="num">4</span>明细表（文件 B）配置<span class="sub">逐行核对</span></h2>'+
+    '<div class="note" style="margin-bottom:14px">为每个启用的 Sheet 指定表头行，并按顺序选择与主表一一对应的键列，再选择要比对的值列。</div>'+
+    '<div id="mxSelB"></div></section>';
+  renderLookupA();renderLookupB();
+}
+
+function onShapeChange(newShape){
+  if(newShape===S.shape)return;
+  S.shape=newShape;
+  // 重置主表配置
+  S.lookupCfg.A.forEach(c=>{
+    c.regionCol=null;
+    c.intervalCols=new Map();
+    c.keyCols=[];
+    c.valueCol=null;
+  });
+  renderLookupA();
+}
+
+/* 主表面板 */
+function renderLookupA(){
+  const c=document.getElementById('mxSelA');
+  const st=S.files.A;
+  let html='';
+  st.wb.worksheets.forEach(sheet=>{
+    const cfg=S.lookupCfg.A.get(sheet.name);if(!cfg)return;
+    const nm=esc(sheet.name);
+    const hv=cfg.headerRow==null?'':cfg.headerRow;
+    html+='<div class="sheet-card'+(cfg.enabled?'':' off')+'" data-side="A" data-sheet="'+nm+'">'+
+      '<div class="sheet-head">'+
+        '<label class="cb-line"><input type="checkbox" class="sh-enable" data-side="A" data-sheet="'+nm+'" '+(cfg.enabled?'checked':'')+'> <span class="sheet-name">'+nm+'</span></label>'+
+        '<span style="font-size:12px;color:var(--ink-3)">表头行</span>'+
+        '<input type="number" class="sh-header" data-side="A" data-sheet="'+nm+'" value="'+hv+'" placeholder="必填" min="1" max="500">'+
+      '</div>';
+    if(cfg.headerRow==null){
+      html+='<div class="empty-hint" style="margin-top:10px">请先填写表头行号</div>';
+    }else if(S.shape==='matrix'){
+      html+=renderMatrixA(sheet.name,cfg);
+    }else{
+      html+=renderRulesA(sheet.name,cfg);
+    }
+    html+='</div>';
+  });
+  c.innerHTML=html||'<div class="empty-hint">没有可用的 Sheet</div>';
+}
+
+function headerOptions(sheet,headerRow){
+  const mr=getMergeResolver(sheet);
+  const maxCol=Math.min(Math.max(sheet.columnCount||0,1),120);
+  const opts=[];
+  for(let c=1;c<=maxCol;c++){
+    const p=resolveMaster(mr,headerRow,c);
+    const txt=getCellText(sheet.getRow(p.row).getCell(p.col)).trim();
+    opts.push({col:c,text:txt});
+  }
+  return opts;
+}
+
+function renderMatrixA(sheetName,cfg){
+  const sheet=S.files.A.wb.getWorksheet(sheetName);
+  if(!sheet)return '';
+  const opts=headerOptions(sheet,cfg.headerRow);
+
+  // 行键列下拉
+  let regionOpts='<option value="">-- 请选择 --</option>';
+  for(const o of opts){
+    const sel=cfg.regionCol===o.col?' selected':'';
+    regionOpts+='<option value="'+o.col+'"'+sel+'>'+esc(numToCol(o.col)+(o.text?'：'+o.text:''))+'</option>';
+  }
+  let regionRow='<div class="cfg-row"><span class="lbl">行键列</span>'+
+    '<select class="region-col" data-side="A" data-sheet="'+esc(sheetName)+'">'+regionOpts+'</select>'+
+    '<span class="empty-hint">例如：地区/线路</span></div>';
+
+  // 区间列表
+  let ivHtml;
+  if(cfg.regionCol==null){
+    ivHtml='<div class="cfg-row" style="display:block"><div style="font-size:12.5px;color:var(--ink-2);font-weight:600;margin-bottom:6px">重量区间列</div>'+
+      '<div class="empty-hint">请先选择行键列</div></div>';
+  }else{
+    let items='';
+    for(const o of opts){
+      if(o.col===cfg.regionCol)continue;
+      const iv=cfg.intervalCols.get(o.col);
+      const checked=!!iv;
+      const minV=(iv&&iv.min!=null)?iv.min:'';
+      const maxV=(iv&&iv.max!=null)?iv.max:'';
+      let statusHtml='';
+      if(iv){
+        statusHtml=iv.valid?'<span class="iv-status ok">✓</span>':'<span class="iv-status bad">?</span>';
+      }
+      items+='<div class="interval-item'+(checked?' on':'')+'" data-side="A" data-sheet="'+esc(sheetName)+'" data-col="'+o.col+'">'+
+        '<label class="iv-head">'+
+          '<input type="checkbox" class="iv-cb" '+(checked?'checked':'')+'>'+
+          '<span title="'+esc(o.text||numToCol(o.col))+'">'+esc(numToCol(o.col)+'：'+(o.text||'(空)'))+'</span>'+
+        '</label>'+
+        '<div class="iv-edit">'+
+          '下界<input type="text" class="iv-min" value="'+esc(minV)+'" placeholder="∞">'+
+          '<span style="color:var(--ink-3)">≤ x &lt;</span>'+
+          '上界<input type="text" class="iv-max" value="'+esc(maxV)+'" placeholder="∞">'+
+          statusHtml+
+        '</div>'+
+      '</div>';
+    }
+    ivHtml='<div class="cfg-row" style="display:block;padding-bottom:14px">'+
+      '<div style="font-size:12.5px;color:var(--ink-2);font-weight:600;margin-bottom:6px">重量区间列（勾选后自动解析列头，可手改，留空表示∞）</div>'+
+      (items||'<div class="empty-hint">没有其它列可作为区间</div>')+
+      '</div>';
+  }
+  return regionRow+ivHtml;
+}
+
+function renderRulesA(sheetName,cfg){
+  const sheet=S.files.A.wb.getWorksheet(sheetName);
+  if(!sheet)return '';
+  const opts=headerOptions(sheet,cfg.headerRow);
+  const nm=esc(sheetName);
+
+  let keysHtml='';
+  if(cfg.keyCols.length===0){
+    keysHtml='<div class="empty-hint" style="padding:6px 0">尚未添加键列，请点下方"添加键列"</div>';
+  }else{
+    cfg.keyCols.forEach((kc,i)=>{
+      let opt='<option value="">-- 选列 --</option>';
+      for(const o of opts){
+        const sel=kc.col===o.col?' selected':'';
+        opt+='<option value="'+o.col+'"'+sel+'>'+esc(numToCol(o.col)+(o.text?'：'+o.text:''))+'</option>';
+      }
+      keysHtml+='<div class="cfg-row" data-role="key-row" data-side="A" data-sheet="'+nm+'" data-idx="'+i+'">'+
+        '<span class="lbl">键'+(i+1)+'</span>'+
+        '<select class="key-col" data-side="A" data-sheet="'+nm+'" data-idx="'+i+'">'+opt+'</select>'+
+        '<select class="key-mode" data-side="A" data-sheet="'+nm+'" data-idx="'+i+'">'+
+          '<option value="exact"'+(kc.mode==='exact'?' selected':'')+'>精确匹配</option>'+
+          '<option value="range"'+(kc.mode==='range'?' selected':'')+'>区间匹配（值填"0-5"）</option>'+
+          '<option value="prefix"'+(kc.mode==='prefix'?' selected':'')+'>前缀匹配</option>'+
+          '<option value="contains"'+(kc.mode==='contains'?' selected':'')+'>包含匹配</option>'+
+        '</select>'+
+        '<button class="btn-mini" data-act="del-key" data-side="A" data-sheet="'+nm+'" data-idx="'+i+'">删除</button>'+
+      '</div>';
+    });
+  }
+  let vOpt='<option value="">-- 选列 --</option>';
+  for(const o of opts){
+    const sel=cfg.valueCol===o.col?' selected':'';
+    vOpt+='<option value="'+o.col+'"'+sel+'>'+esc(numToCol(o.col)+(o.text?'：'+o.text:''))+'</option>';
+  }
+  return '<div class="cfg-row" style="display:block">'+
+    '<div style="font-size:12.5px;color:var(--ink-2);font-weight:600;margin-bottom:6px">键列（顺序需与明细表一一对应）</div>'+
+    keysHtml+
+    '<button class="btn-mini" data-act="add-key" data-side="A" data-sheet="'+nm+'" style="margin-top:8px">+ 添加键列</button>'+
+    '</div>'+
+    '<div class="cfg-row"><span class="lbl">值列</span>'+
+      '<select class="value-col" data-side="A" data-sheet="'+nm+'">'+vOpt+'</select>'+
+      '<span class="empty-hint">例如：单价、折扣率</span>'+
+    '</div>';
+}
+
+/* 明细表面板 */
+function renderLookupB(){
+  const c=document.getElementById('mxSelB');
+  const st=S.files.B;
+  let html='';
+  st.wb.worksheets.forEach(sheet=>{
+    const cfg=S.lookupCfg.B.get(sheet.name);if(!cfg)return;
+    const nm=esc(sheet.name);
+    const hv=cfg.headerRow==null?'':cfg.headerRow;
+    html+='<div class="sheet-card'+(cfg.enabled?'':' off')+'" data-side="B" data-sheet="'+nm+'">'+
+      '<div class="sheet-head">'+
+        '<label class="cb-line"><input type="checkbox" class="sh-enable" data-side="B" data-sheet="'+nm+'" '+(cfg.enabled?'checked':'')+'> <span class="sheet-name">'+nm+'</span></label>'+
+        '<span style="font-size:12px;color:var(--ink-3)">表头行</span>'+
+        '<input type="number" class="sh-header" data-side="B" data-sheet="'+nm+'" value="'+hv+'" placeholder="必填" min="1" max="500">'+
+      '</div>';
+    if(cfg.headerRow==null){
+      html+='<div class="empty-hint" style="margin-top:10px">请先填写表头行号</div>';
+    }else{
+      html+=renderLookupBConfig(sheet.name,cfg);
+    }
+    html+='</div>';
+  });
+  c.innerHTML=html||'<div class="empty-hint">没有可用的 Sheet</div>';
+}
+function renderLookupBConfig(sheetName,cfg){
+  const sheet=S.files.B.wb.getWorksheet(sheetName);
+  if(!sheet)return '';
+  const opts=headerOptions(sheet,cfg.headerRow);
+  const nm=esc(sheetName);
+
+  let keysHtml='';
+  if(cfg.keyCols.length===0){
+    keysHtml='<div class="empty-hint" style="padding:6px 0">尚未添加键列，请点下方"添加键列"</div>';
+  }else{
+    cfg.keyCols.forEach((col,i)=>{
+      let opt='<option value="">-- 选列 --</option>';
+      for(const o of opts){
+        const sel=col===o.col?' selected':'';
+        opt+='<option value="'+o.col+'"'+sel+'>'+esc(numToCol(o.col)+(o.text?'：'+o.text:''))+'</option>';
+      }
+      keysHtml+='<div class="cfg-row" data-role="key-row" data-side="B" data-sheet="'+nm+'" data-idx="'+i+'">'+
+        '<span class="lbl">键'+(i+1)+'</span>'+
+        '<select class="b-key-col" data-side="B" data-sheet="'+nm+'" data-idx="'+i+'">'+opt+'</select>'+
+        '<button class="btn-mini" data-act="del-key" data-side="B" data-sheet="'+nm+'" data-idx="'+i+'">删除</button>'+
+      '</div>';
+    });
+  }
+  let vOpt='<option value="">-- 选列 --</option>';
+  for(const o of opts){
+    const sel=cfg.valueCol===o.col?' selected':'';
+    vOpt+='<option value="'+o.col+'"'+sel+'>'+esc(numToCol(o.col)+(o.text?'：'+o.text:''))+'</option>';
+  }
+  return '<div class="cfg-row" style="display:block">'+
+    '<div style="font-size:12.5px;color:var(--ink-2);font-weight:600;margin-bottom:6px">查找键列（顺序需与主表一一对应）</div>'+
+    keysHtml+
+    '<button class="btn-mini" data-act="add-key" data-side="B" data-sheet="'+nm+'" style="margin-top:8px">+ 添加键列</button>'+
+    '</div>'+
+    '<div class="cfg-row"><span class="lbl">比对值列</span>'+
+      '<select class="b-value-col" data-side="B" data-sheet="'+nm+'">'+vOpt+'</select>'+
+      '<span class="empty-hint">例如：单价</span>'+
+    '</div>';
+}
+
+/* ==================================================================
+   九、配置面板事件（关键：所有动态元素的事件都通过委托处理）
+   ================================================================== */
+const cfgPanel=document.getElementById('configPanel');
+
+/* ---------- change 事件 ---------- */
+cfgPanel.addEventListener('change',e=>{
+  const t=e.target;
+
+  // 主表形态切换
+  if(t.id==='shapeSelect'){onShapeChange(t.value);return;}
+
+  // 找到最近的 .sheet-card 或 .interval-item 作为上下文
+  const card=t.closest('.sheet-card');
+  const ivItem=t.closest('.interval-item');
+
+  // ---- 区间勾选框 ----
+  if(t.classList.contains('iv-cb')&&ivItem){
+    const sheetName=ivItem.dataset.sheet;
+    const col=parseInt(ivItem.dataset.col,10);
+    const cfg=S.lookupCfg.A.get(sheetName);if(!cfg)return;
+    if(t.checked){
+      // 从列头解析
+      const sheet=S.files.A.wb.getWorksheet(sheetName);
+      const opts=headerOptions(sheet,cfg.headerRow);
+      const o=opts.find(x=>x.col===col);
+      const parsed=parseInterval(o?o.text:'');
+      // 若已存在（之前填过），保留填过的值
+      const existing=cfg.intervalCols.get(col);
+      if(existing){
+        parsed.min=existing.min;
+        parsed.max=existing.max;
+        parsed.valid=existing.valid;
+      }
+      cfg.intervalCols.set(col,parsed);
+    }else{
+      cfg.intervalCols.delete(col);
+    }
+    // 局部更新：只更新这一项的 UI
+    const iv=cfg.intervalCols.get(col);
+    const minIn=ivItem.querySelector('.iv-min');
+    const maxIn=ivItem.querySelector('.iv-max');
+    const oldStatus=ivItem.querySelector('.iv-status');
+    if(iv){
+      ivItem.classList.add('on');
+      if(iv.min!=null)minIn.value=iv.min;else minIn.value='';
+      if(iv.max!=null)maxIn.value=iv.max;else maxIn.value='';
+      let s='';
+      if(iv.valid)s='<span class="iv-status ok">✓</span>';
+      else s='<span class="iv-status bad">?</span>';
+      if(oldStatus)oldStatus.outerHTML=s;
+      else ivItem.querySelector('.iv-edit').insertAdjacentHTML('beforeend',s);
+    }else{
+      ivItem.classList.remove('on');
+      if(oldStatus)oldStatus.outerHTML='';
+    }
+    return;
+  }
+
+  // ---- Sheet 启用勾选 / 表头行 ----
+  if(card){
+    const side=card.dataset.side;
+    const sheetName=card.dataset.sheet;
+    if(t.classList.contains('sh-enable')){
+      if(S.mode==='set'){
+        const cfg=S.setCfg[side].get(sheetName);if(!cfg)return;
+        cfg.enabled=t.checked;
+      }else{
+        const cfg=S.lookupCfg[side].get(sheetName);if(!cfg)return;
+        cfg.enabled=t.checked;
+      }
+      card.classList.toggle('off',!t.checked);
+      return;
+    }
+    if(t.classList.contains('sh-header')){
+      const raw=String(t.value||'').trim();
+      const v=parseInt(raw,10);
+      const hdr=(raw===''||isNaN(v)||v<1)?null:Math.min(v,500);
+      if(S.mode==='set'){
+        const cfg=S.setCfg[side].get(sheetName);if(!cfg)return;
+        cfg.headerRow=hdr;
+        if(hdr==null){t.value='';cfg.cols=new Set();}
+        else t.value=hdr;
+        renderSetSelector(side);
+      }else{
+        const cfg=S.lookupCfg[side].get(sheetName);if(!cfg)return;
+        cfg.headerRow=hdr;
+        if(hdr==null){
+          t.value='';
+          if(side==='A'){cfg.regionCol=null;cfg.intervalCols=new Map();cfg.keyCols=[];cfg.valueCol=null;}
+          else{cfg.keyCols=[];cfg.valueCol=null;}
+        }else t.value=hdr;
+        if(side==='A')renderLookupA();else renderLookupB();
+      }
+      return;
+    }
+  }
+
+  // ---- 集合匹配：列勾选 ----
+  if(t.classList.contains('col-cb')){
+    const side=t.dataset.side;
+    const sheetName=t.dataset.sheet;
+    const col=parseInt(t.dataset.col,10);
+    const cfg=S.setCfg[side].get(sheetName);if(!cfg)return;
+    if(t.checked)cfg.cols.add(col);else cfg.cols.delete(col);
+    const chip=t.closest('.col-chip');
+    if(chip)chip.classList.toggle('on',t.checked);
+    const shCard=t.closest('.sheet-card');
+    if(shCard){
+      const cnt=shCard.querySelector('.sh-count');
+      if(cnt)cnt.textContent='已选 '+cfg.cols.size+' 列';
+    }
+    return;
+  }
+
+  // ---- 查值核对 · 主表：行键列 ----
+  if(t.classList.contains('region-col')){
+    const sheetName=t.dataset.sheet;
+    const cfg=S.lookupCfg.A.get(sheetName);if(!cfg)return;
+    cfg.regionCol=t.value===''?null:parseInt(t.value,10);
+    cfg.intervalCols=new Map();
+    renderLookupA();
+    return;
+  }
+
+  // ---- 查值核对 · 主表（规则表）：键列/匹配方式/值列 ----
+  if(t.classList.contains('key-col')){
+    const sheetName=t.dataset.sheet;
+    const idx=parseInt(t.dataset.idx,10);
+    const cfg=S.lookupCfg.A.get(sheetName);if(!cfg||!cfg.keyCols[idx])return;
+    cfg.keyCols[idx].col=t.value===''?null:parseInt(t.value,10);
+    return;
+  }
+  if(t.classList.contains('key-mode')){
+    const sheetName=t.dataset.sheet;
+    const idx=parseInt(t.dataset.idx,10);
+    const cfg=S.lookupCfg.A.get(sheetName);if(!cfg||!cfg.keyCols[idx])return;
+    cfg.keyCols[idx].mode=t.value;
+    return;
+  }
+  if(t.classList.contains('value-col')){
+    const sheetName=t.dataset.sheet;
+    const cfg=S.lookupCfg.A.get(sheetName);if(!cfg)return;
+    cfg.valueCol=t.value===''?null:parseInt(t.value,10);
+    return;
+  }
+
+  // ---- 查值核对 · 明细表：键列/值列 ----
+  if(t.classList.contains('b-key-col')){
+    const sheetName=t.dataset.sheet;
+    const idx=parseInt(t.dataset.idx,10);
+    const cfg=S.lookupCfg.B.get(sheetName);if(!cfg)return;
+    cfg.keyCols[idx]=t.value===''?null:parseInt(t.value,10);
+    return;
+  }
+  if(t.classList.contains('b-value-col')){
+    const sheetName=t.dataset.sheet;
+    const cfg=S.lookupCfg.B.get(sheetName);if(!cfg)return;
+    cfg.valueCol=t.value===''?null:parseInt(t.value,10);
+    return;
+  }
+});
+
+/* ---------- input 事件：区间输入框实时保存 ---------- */
+cfgPanel.addEventListener('input',e=>{
+  const t=e.target;
+  if(!t.classList.contains('iv-min')&&!t.classList.contains('iv-max'))return;
+  const item=t.closest('.interval-item');if(!item)return;
+  const sheetName=item.dataset.sheet;
+  const col=parseInt(item.dataset.col,10);
+  const cfg=S.lookupCfg.A.get(sheetName);if(!cfg)return;
+
+  // 如果还没勾选，输入时自动勾上
+  let iv=cfg.intervalCols.get(col);
+  if(!iv){
+    const sheet=S.files.A.wb.getWorksheet(sheetName);
+    const opts=headerOptions(sheet,cfg.headerRow);
+    const o=opts.find(x=>x.col===col);
+    iv=parseInterval(o?o.text:'');
+    cfg.intervalCols.set(col,iv);
+    // 把勾选框勾上
+    const cb=item.querySelector('.iv-cb');
+    if(cb)cb.checked=true;
+    item.classList.add('on');
+  }
+  const minS=String(item.querySelector('.iv-min').value||'').trim();
+  const maxS=String(item.querySelector('.iv-max').value||'').trim();
+  iv.min=minS===''?null:parseFloat(minS);
+  iv.max=maxS===''?null:parseFloat(maxS);
+  const minValid=minS===''||!isNaN(iv.min);
+  const maxValid=maxS===''||!isNaN(iv.max);
+  iv.valid=minValid&&maxValid&&(minS!==''||maxS!=='');
+  const st=item.querySelector('.iv-status');
+  const newSt=iv.valid?'<span class="iv-status ok">✓</span>':'<span class="iv-status bad">?</span>';
+  if(st)st.outerHTML=newSt;
+  else item.querySelector('.iv-edit').insertAdjacentHTML('beforeend',newSt);
+});
+
+/* ---------- click 事件：全选/清空、增删键列 ---------- */
+cfgPanel.addEventListener('click',e=>{
+  const btn=e.target.closest('button');if(!btn)return;
+  const act=btn.dataset.act;
+
+  // 集合匹配：全选/清空列
+  if(act==='all'||act==='none'){
+    const side=btn.dataset.side;
+    const sheetName=btn.dataset.sheet;
+    const cfg=S.setCfg[side].get(sheetName);if(!cfg)return;
+    if(cfg.headerRow==null){alert('请先填写表头行号');return;}
+    const sheet=S.files[side].wb.getWorksheet(sheetName);
+    const mr=getMergeResolver(sheet);
+    const maxCol=Math.min(Math.max(sheet.columnCount||0,1),120);
+    if(act==='all'){
+      cfg.cols=new Set();
+      for(let c=1;c<=maxCol;c++){
+        const p=resolveMaster(mr,cfg.headerRow,c);
+        if(getCellText(sheet.getRow(p.row).getCell(p.col)).trim())cfg.cols.add(c);
+      }
+      if(!cfg.cols.size)for(let c=1;c<=maxCol;c++)cfg.cols.add(c);
+    }else cfg.cols=new Set();
+    renderSetSelector(side);
+    return;
+  }
+
+  // 查值核对：增删键列
+  if(act==='add-key'){
+    const side=btn.dataset.side;
+    const sheetName=btn.dataset.sheet;
+    if(side==='A'){
+      const cfg=S.lookupCfg.A.get(sheetName);if(!cfg)return;
+      cfg.keyCols.push({col:null,mode:'exact'});
+      renderLookupA();
+    }else{
+      const cfg=S.lookupCfg.B.get(sheetName);if(!cfg)return;
+      cfg.keyCols.push(null);
+      renderLookupB();
+    }
+    return;
+  }
+  if(act==='del-key'){
+    const side=btn.dataset.side;
+    const sheetName=btn.dataset.sheet;
+    const idx=parseInt(btn.dataset.idx,10);
+    if(side==='A'){
+      const cfg=S.lookupCfg.A.get(sheetName);if(!cfg)return;
+      cfg.keyCols.splice(idx,1);renderLookupA();
+    }else{
+      const cfg=S.lookupCfg.B.get(sheetName);if(!cfg)return;
+      cfg.keyCols.splice(idx,1);renderLookupB();
+    }
+    return;
+  }
+});
+
+/* ==================================================================
+   十、执行
+   ================================================================== */
+async function process(){
+  if(!S.files.A.wb||!S.files.B.wb){alert('请先读取文件');return;}
+  if(S.mode==='set')await runSet();
+  else await runLookup();
+}
+
+function resetOutputs(){
+  document.getElementById('log').innerHTML='';
+  document.getElementById('legend').innerHTML='';
+  document.getElementById('downloads').innerHTML='';
+  document.getElementById('stats').className='';
+  document.getElementById('stats').innerHTML='';
+  document.getElementById('summary-wrap').className='';
+  document.getElementById('legend-panel').style.display='none';
+  document.getElementById('dl-panel').style.display='none';
+  S.results={set:{matched:[],onlyA:[],onlyB:[]},lookup:[]};
+}
+
+/* ---------- 集合匹配主流程 ---------- */
+async function runSet(){
+  const collect=side=>{
+    const map=new Map(),missing=[];
+    S.setCfg[side].forEach((cfg,name)=>{
+      if(!cfg.enabled)return;
+      if(cfg.headerRow==null){missing.push(name);return;}
+      if(cfg.cols.size===0)return;
+      map.set(name,{headerRow:cfg.headerRow,cols:[...cfg.cols].sort((a,b)=>a-b)});
+    });
+    return {map,missing};
+  };
+  const rA=collect('A'),rB=collect('B');
+  if(rA.missing.length||rB.missing.length){
+    let m='以下启用的 Sheet 未填写表头行号：\n';
+    if(rA.missing.length)m+='文件A：'+rA.missing.join('、')+'\n';
+    if(rB.missing.length)m+='文件B：'+rB.missing.join('、')+'\n';
+    alert(m);return;
+  }
+  if(rA.map.size===0||rB.map.size===0){alert('请至少各勾选一个 Sheet 和一列');return;}
+
+  resetOutputs();
+  const btn=document.getElementById('runBtn');
+  btn.disabled=true;btn.textContent='处理中…';
+  try{
+    log('模式：集合匹配');
+    log('文件A：'+[...rA.map].map(([k,v])=>k+'[R'+v.headerRow+'; '+v.cols.map(numToCol).join('+')+']').join('，'));
+    log('文件B：'+[...rB.map].map(([k,v])=>k+'[R'+v.headerRow+'; '+v.cols.map(numToCol).join('+')+']').join('，'));
+    const mapA=collectKeys(S.files.A.wb,rA.map);
+    log('文件A唯一键 '+mapA.size);
+    const mapB=collectKeys(S.files.B.wb,rB.map);
+    log('文件B唯一键 '+mapB.size);
+    const {matched,onlyA,onlyB}=diffOrders(mapA,mapB);
+    S.results.set={matched,onlyA,onlyB};
+    log('匹配 '+matched.length+'；仅A '+onlyA.length+'；仅B '+onlyB.length);
+
+    renderStatsSet(matched,onlyA,onlyB);
+
+    const colorMode=document.getElementById('colorMode').value;
+    const uniformColor=document.getElementById('uniformColor').value;
+    const cm=buildColorMap(matched.map(m=>m.id),colorMode,uniformColor);
+    renderLegendSet(matched,cm,colorMode);
+
+    if(matched.length>0){
+      log('高亮文件 A …');
+      highlightSet(S.files.A.wb,rA.map,cm);
+      log('高亮文件 B …');
+      const dB=highlightSet(S.files.B.wb,rB.map,cm);
+      document.getElementById('stCells').textContent=dB.length;
+      log('共高亮 '+dB.length+' 行');
+      appendSummarySet(S.files.A.wb,matched,'文件A');
+      appendSummarySet(S.files.B.wb,matched,'文件B');
+    }
+    showSummary();
+    setCsv('csvMain','匹配清单.csv',makeCsv(
+      matched.map(m=>[m.label,m.countA,m.countB,locText(m.locA),locText(m.locB)]),
+      ['匹配键','文件A次数','文件B次数','文件A位置','文件B位置']));
+    setCsv('csvOnlyA','仅文件A有.csv',makeCsv(
+      onlyA.map(m=>[m.label,m.countA,locText(m.locA)]),['匹配键','文件A次数','文件A位置']));
+    setCsv('csvOnlyB','仅文件B有.csv',makeCsv(
+      onlyB.map(m=>[m.label,m.countB,locText(m.locB)]),['匹配键','文件B次数','文件B位置']));
+
+    document.getElementById('dlNote').innerHTML='文件 A、B 均已高亮，各自追加「匹配汇总」Sheet。';
+    const dl=document.getElementById('downloads');dl.innerHTML='';
+    mkDownload(dl,S.files.A.wb,S.files.A.file,'文件 A','（已高亮）','匹配高亮');
+    mkDownload(dl,S.files.B.wb,S.files.B.file,'文件 B','（已高亮）','匹配高亮');
+    document.getElementById('dl-panel').style.display='block';
+    log('全部完成');
+  }catch(err){
+    console.error(err);
+    log('错误：'+(err&&err.message?err.message:err));
+    alert('处理失败，请查看日志。');
+  }finally{
+    btn.disabled=false;btn.textContent='开始处理';
+  }
+}
+
+/* ---------- 查值核对主流程 ---------- */
+async function runLookup(){
+  const missingA=[],missingB=[];
+  S.lookupCfg.A.forEach((c,name)=>{
+    if(!c.enabled)return;
+    if(c.headerRow==null){missingA.push(name+'（缺表头行）');return;}
+    if(S.shape==='matrix'){
+      if(c.regionCol==null){missingA.push(name+'（缺行键列）');return;}
+      const valid=[...c.intervalCols.values()].filter(iv=>iv.valid&&(iv.min!=null||iv.max!=null));
+      if(valid.length===0){
+        const tot=c.intervalCols.size;
+        missingA.push(name+'（无有效区间列；已勾选 '+tot+' 列'+(tot?'但都未解析或未手填':'')+'）');
+        return;
+      }
+    }else{
+      const keys=c.keyCols.filter(k=>k.col!=null);
+      if(keys.length===0){missingA.push(name+'（未配置有效键列）');return;}
+      if(c.valueCol==null){missingA.push(name+'（未选值列）');return;}
+    }
+  });
+  S.lookupCfg.B.forEach((c,name)=>{
+    if(!c.enabled)return;
+    if(c.headerRow==null){missingB.push(name+'（缺表头行）');return;}
+    const keys=c.keyCols.filter(x=>x!=null);
+    if(keys.length===0){missingB.push(name+'（未配置有效键列）');return;}
+    if(c.valueCol==null){missingB.push(name+'（未选比对值列）');return;}
+  });
+  if(missingA.length||missingB.length){
+    let m='以下配置不完整：\n\n';
+    if(missingA.length)m+='文件A（主表）：\n  '+missingA.join('\n  ')+'\n\n';
+    if(missingB.length)m+='文件B（明细表）：\n  '+missingB.join('\n  ')+'\n';
+    alert(m);return;
+  }
+
+  resetOutputs();
+  const btn=document.getElementById('runBtn');
+  btn.disabled=true;btn.textContent='处理中…';
+  try{
+    log('模式：查值核对 · 主表形态='+(S.shape==='matrix'?'矩阵表':'规则表'));
+    log('构建主表规则 …');
+    const rules=buildRules(S.files.A.wb,S.lookupCfg.A,S.shape);
+    log('主表共 '+rules.length+' 条规则');
+    if(rules.length===0){alert('主表未生成任何规则，请检查配置');return;}
+
+    const expectKeys=rules[0].keys.length;
+    let mismatch=false;
+    S.lookupCfg.B.forEach((c,name)=>{
+      if(!c.enabled)return;
+      const n=c.keyCols.filter(x=>x!=null).length;
+      if(n!==expectKeys){
+        log('<b>⚠ Sheet "'+name+'" 键列数（'+n+'）与主表（'+expectKeys+'）不一致，将无法匹配</b>');
+        mismatch=true;
+      }
+    });
+    if(mismatch){
+      if(!confirm('有 Sheet 的键列数与主表不一致，可能永远匹配不到。是否继续？'))return;
+    }
+
+    const tolerance=parseFloat(document.getElementById('tolerance').value)||0;
+    const onMiss=document.getElementById('onMiss').value;
+    log('容差 ±'+tolerance+'；异常处理='+(onMiss==='skip'?'跳过':'标黄'));
+
+    log('逐行核对明细表 …');
+    const results=crossCheck(S.files.B.wb,S.lookupCfg.B,rules,tolerance);
+    S.results.lookup=results;
+    const good=results.filter(r=>r.status==='一致').length;
+    const bad=results.filter(r=>r.status==='不一致').length;
+    const warn=results.length-good-bad;
+    log('核对完成：一致 '+good+'；不一致 '+bad+'；异常 '+warn+'；总计 '+results.length);
+
+    renderStatsLookup(good,bad,warn,results.length);
+
+    log('高亮明细表 …');
+    highlightLookup(S.files.B.wb,results,S.lookupCfg.B,onMiss);
+    if(results.length>0){
+      appendSummaryLookup(S.files.B.wb,results);
+      log('已在文件 B 追加「核对汇总」Sheet');
+    }
+
+    showSummary();
+    setCsv('csvMain','核对明细.csv',makeCsv(
+      results.map(r=>[r.sheetB,r.rowB,r.rawKeys.join(' | '),r.bNum===null?r.bValRaw:r.bNum,r.matchedLabel,r.aNum===null?r.aValRaw:r.aNum,r.status,r.diff===null?'':r.diff]),
+      ['Sheet','行号','查找键','明细值','命中规则','主表值','结果','差值']));
+    setCsv('csvOnlyA','不一致明细.csv',makeCsv(
+      results.filter(r=>r.status==='不一致').map(r=>[r.sheetB,r.rowB,r.rawKeys.join(' | '),r.bNum,r.aNum,r.diff]),
+      ['Sheet','行号','查找键','明细值','主表值','差值']));
+    setCsv('csvOnlyB','异常明细.csv',makeCsv(
+      results.filter(r=>r.status!=='一致'&&r.status!=='不一致').map(r=>[r.sheetB,r.rowB,r.rawKeys.join(' | '),r.bValRaw,r.status]),
+      ['Sheet','行号','查找键','明细值','异常说明']));
+
+    document.getElementById('dlNote').innerHTML=
+      '文件 A（主表）原样导出，仅清除条件格式。<br>'+
+      '文件 B（明细表）已按核对结果高亮，并追加「核对汇总」Sheet。';
+    const dl=document.getElementById('downloads');dl.innerHTML='';
+    mkDownload(dl,S.files.A.wb,S.files.A.file,'文件 A','（主表）','核对');
+    mkDownload(dl,S.files.B.wb,S.files.B.file,'文件 B','（已高亮）','核对');
+    document.getElementById('dl-panel').style.display='block';
+    log('全部完成');
+  }catch(err){
+    console.error(err);
+    log('错误：'+(err&&err.message?err.message:err));
+    alert('处理失败，请查看日志。');
+  }finally{
+    btn.disabled=false;btn.textContent='开始处理';
+  }
+}
+
+function mkDownload(container,wb,file,tag,suffix,suffix2){
+  const ext=wb.__converted?'.xlsx':(file.name.match(/\.xlsx?$/i)||['.xlsx'])[0];
+  const base=file.name.replace(/\.xlsx?$/i,'');
+  const a=document.createElement('a');
+  a.href='#';a.textContent='下载 '+tag+suffix;
+  container.appendChild(a);
+  wb.xlsx.writeBuffer({useSharedStrings:false}).then(async buf=>{
+    buf=await stripCF(buf);
+    const url=URL.createObjectURL(new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
+    a.href=url;a.download=base+'_'+suffix2+(ext==='.xls'?'.xlsx':ext);
+  });
+}
+
+/* ==================================================================
+   十一、结果渲染
+   ================================================================== */
+function renderStatsSet(matched,onlyA,onlyB){
+  const s=document.getElementById('stats');
+  s.className='on';
+  s.innerHTML=
+    '<div class="stat good"><div class="num">'+matched.length+'</div><div class="cap">匹配到的键</div></div>'+
+    '<div class="stat warn"><div class="num">'+onlyA.length+'</div><div class="cap">仅文件 A 有</div></div>'+
+    '<div class="stat warn"><div class="num">'+onlyB.length+'</div><div class="cap">仅文件 B 有</div></div>'+
+    '<div class="stat"><div class="num" id="stCells">0</div><div class="cap">高亮的行数</div></div>';
+}
+function renderStatsLookup(good,bad,warn,total){
+  const s=document.getElementById('stats');
+  s.className='on';
+  s.innerHTML=
+    '<div class="stat good"><div class="num">'+good+'</div><div class="cap">一致</div></div>'+
+    '<div class="stat bad"><div class="num">'+bad+'</div><div class="cap">不一致</div></div>'+
+    '<div class="stat warn"><div class="num">'+warn+'</div><div class="cap">其它问题</div></div>'+
+    '<div class="stat"><div class="num">'+total+'</div><div class="cap">总记录数</div></div>';
+}
+function renderLegendSet(matched,cm,mode){
+  const p=document.getElementById('legend-panel'),d=document.getElementById('legend');
+  if(!cm.size){p.style.display='none';return;}
+  p.style.display='block';
+  let h='<b>'+(mode==='uniform'?'统一高亮色：':'颜色图例（'+cm.size+' 个键）：')+'</b><br>';
+  let n=0;
+  for(const m of matched){
+    const a=cm.get(m.id);if(!a)continue;
+    h+='<span class="legend-item"><span class="legend-swatch" style="background:#'+a.slice(2)+'"></span>'+esc(m.label)+'</span>';
+    if(++n>=300){h+='<br>…共 '+cm.size+' 个';break;}
+  }
+  d.innerHTML=h;
+}
+function locText(a){if(!a||!a.length)return '';const s=a.slice(0,30).join(', ');return a.length>30?s+' 等'+a.length+'处':s;}
+
+function showSummary(){
+  document.getElementById('summary-wrap').className='on';
+  renderSummaryTable();
+}
+function renderSummaryTable(){
+  const head=document.getElementById('sumHead'),body=document.getElementById('sumBody');
+  const filter=normalize(document.getElementById('sumFilter').value||'');
+  const dir=gSortAsc?1:-1;
+
+  if(S.mode==='set'){
+    head.innerHTML='<tr>'+
+      '<th onclick="sortSummary(\'label\')">匹配键 <span id="sk-label"></span></th>'+
+      '<th onclick="sortSummary(\'countA\')">A 次数 <span id="sk-countA"></span></th>'+
+      '<th onclick="sortSummary(\'countB\')">B 次数 <span id="sk-countB"></span></th>'+
+      '<th>A 位置</th><th>B 位置</th></tr>';
+    let rows=S.results.set.matched.filter(m=>!filter||normalize(m.label).includes(filter));
+    rows=rows.slice().sort((a,b)=>{
+      let r;
+      if(gSortKey==='label')r=a.label.localeCompare(b.label,'zh-Hans-CN',{numeric:true});
+      else r=(a[gSortKey]||0)-(b[gSortKey]||0);
+      return r*dir||a.label.localeCompare(b.label,'zh-Hans-CN',{numeric:true});
+    });
+    ['label','countA','countB'].forEach(k=>{
+      const el=document.getElementById('sk-'+k);
+      if(el)el.textContent=k===gSortKey?(gSortAsc?'↑':'↓'):'';
+    });
+    const MAX=5000;let h='';
+    for(let i=0;i<Math.min(rows.length,MAX);i++){
+      const m=rows[i];
+      h+='<tr><td class="id" title="'+esc(m.label)+'">'+esc(m.label)+'</td>'+
+        '<td class="c">'+m.countA+'</td><td class="c">'+m.countB+'</td>'+
+        '<td title="'+esc(locText(m.locA))+'">'+esc(locText(m.locA))+'</td>'+
+        '<td title="'+esc(locText(m.locB))+'">'+esc(locText(m.locB))+'</td></tr>';
+    }
+    body.innerHTML=h;
+    document.getElementById('sumCount').textContent='共 '+rows.length+' 个匹配键'+(rows.length>MAX?'（仅渲染前 '+MAX+' 行）':'');
+  }else{
+    head.innerHTML='<tr>'+
+      '<th onclick="sortSummary(\'rowB\')">Sheet!行号 <span id="sk-rowB"></span></th>'+
+      '<th>查找键</th><th>明细值</th>'+
+      '<th>命中规则</th><th>主表值</th>'+
+      '<th onclick="sortSummary(\'status\')">结果 <span id="sk-status"></span></th>'+
+      '<th>差值</th></tr>';
+    let rows=S.results.lookup.filter(r=>{
+      if(!filter)return true;
+      return normalize(r.rawKeys.join(' ')+' '+r.bValRaw+' '+r.status+' '+r.matchedLabel).includes(filter);
+    });
+    rows=rows.slice().sort((a,b)=>{
+      let r;
+      if(gSortKey==='status')r=String(a.status).localeCompare(String(b.status),'zh-Hans-CN');
+      else if(gSortKey==='rowB')r=a.rowB-b.rowB;
+      else r=0;
+      return r*dir;
+    });
+    ['rowB','status'].forEach(k=>{
+      const el=document.getElementById('sk-'+k);
+      if(el)el.textContent=k===gSortKey?(gSortAsc?'↑':'↓'):'';
+    });
+    const MAX=5000;let h='';
+    for(let i=0;i<Math.min(rows.length,MAX);i++){
+      const m=rows[i];
+      let cls='row-warn',sc='status-warn';
+      if(m.status==='一致'){cls='row-good';sc='status-good';}
+      else if(m.status==='不一致'){cls='row-bad';sc='status-bad';}
+      h+='<tr class="'+cls+'">'+
+        '<td>'+esc(m.sheetB)+'!R'+m.rowB+'</td>'+
+        '<td title="'+esc(m.rawKeys.join(' | '))+'">'+esc(m.rawKeys.join(' | '))+'</td>'+
+        '<td>'+esc(m.bValRaw)+'</td>'+
+        '<td>'+esc(m.matchedLabel||'—')+'</td>'+
+        '<td>'+(m.aNum===null?esc(m.aValRaw||'—'):m.aNum)+'</td>'+
+        '<td class="'+sc+'">'+esc(m.status)+'</td>'+
+        '<td>'+(m.diff===null?'—':(Math.round(m.diff*10000)/10000))+'</td></tr>';
+    }
+    body.innerHTML=h;
+    document.getElementById('sumCount').textContent='共 '+rows.length+' 条'+(rows.length>MAX?'（仅渲染前 '+MAX+' 行）':'');
+  }
+}
+function sortSummary(k){
+  if(gSortKey===k)gSortAsc=!gSortAsc;else{gSortKey=k;gSortAsc=true;}
+  renderSummaryTable();
+}
+
+/* CSV */
+function csvEsc(s){s=String(s==null?'':s);return /[",\n\r]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s;}
+function makeCsv(rows,heads){
+  const lines=[heads.map(csvEsc).join(',')];
+  rows.forEach(r=>lines.push(r.map(csvEsc).join(',')));
+  return '\ufeff'+lines.join('\r\n');
+}
+function setCsv(elId,filename,text){
+  const blob=new Blob([text],{type:'text/csv;charset=utf-8'});
+  const a=document.getElementById(elId);
+  if(a.dataset.url)URL.revokeObjectURL(a.dataset.url);
+  const url=URL.createObjectURL(blob);
+  a.dataset.url=url;a.href=url;a.download=filename;
+}
+
+/* 文件更换时重置 */
+['fileA','fileB'].forEach(id=>{
+  document.getElementById(id).addEventListener('change',()=>{
+    document.getElementById('configPanel').innerHTML='';
+    document.getElementById('settingsPanel').style.display='none';
+    document.getElementById('runBtn').disabled=true;
+    S.files={A:{wb:null,file:null},B:{wb:null,file:null}};
+  });
+});
+document.getElementById('colorMode').addEventListener('change',e=>{
+  document.getElementById('uniformColorRow').style.display=e.target.value==='uniform'?'flex':'none';
+});
+</script>
 </body>
 </html>
