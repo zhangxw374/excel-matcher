@@ -23,7 +23,6 @@ body{margin:0;background:var(--bg);color:var(--ink);
   font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei","Segoe UI",sans-serif;
   font-size:14px;line-height:1.6;-webkit-font-smoothing:antialiased}
 
-/* 品牌栏 */
 .brand-bar{background:linear-gradient(135deg,#0a4a3d,#0d5344 45%,#16634d);
   color:#fff;border-bottom:3px solid var(--gold);position:relative;overflow:hidden}
 .brand-bar::after{content:"";position:absolute;right:-60px;top:-60px;width:280px;height:280px;
@@ -40,7 +39,6 @@ body{margin:0;background:var(--bg);color:var(--ink);
 
 main{max-width:1200px;margin:0 auto;padding:24px 32px 80px}
 
-/* 卡片 */
 .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;
   padding:22px 26px;margin-bottom:18px;box-shadow:var(--shadow)}
 .card-title{margin:0 0 16px;font-size:15px;font-weight:700;color:var(--ink);
@@ -50,7 +48,6 @@ main{max-width:1200px;margin:0 auto;padding:24px 32px 80px}
   font-size:12px;font-weight:700;flex-shrink:0}
 .card-title .sub{color:var(--ink-3);font-weight:400;font-size:12.5px;margin-left:4px}
 
-/* 模式选择 */
 .mode-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 .mode-card{border:2px solid var(--line);border-radius:10px;padding:18px 20px;
   cursor:pointer;transition:all .18s;background:#fff;position:relative}
@@ -63,7 +60,6 @@ main{max-width:1200px;margin:0 auto;padding:24px 32px 80px}
 .mode-card.active .mode-name{color:var(--brand)}
 .mode-desc{font-size:12.5px;color:var(--ink-2);line-height:1.55}
 
-/* 表单 */
 .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px 26px}
 .grid-2 .full{grid-column:1/-1}
 label.field{display:block;font-size:13px;color:var(--ink);font-weight:500}
@@ -79,7 +75,6 @@ input[type=color]{width:44px;height:36px;padding:2px;border:1px solid var(--line
 .cb-line{display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer}
 .cb-line input{width:auto;margin:0;accent-color:var(--brand-2)}
 
-/* 按钮 */
 button{font-family:inherit;cursor:pointer;transition:all .15s}
 .btn-primary{display:inline-flex;align-items:center;gap:8px;padding:11px 28px;
   font-size:14.5px;font-weight:600;color:#fff;
@@ -99,7 +94,6 @@ button{font-family:inherit;cursor:pointer;transition:all .15s}
 .btn-link{color:var(--brand-2);text-decoration:none;font-size:12.5px;font-weight:500}
 .btn-link:hover{color:var(--brand);text-decoration:underline}
 
-/* Sheet 卡片 */
 .sheet-card{border:1px solid var(--line);border-radius:9px;
   padding:14px 16px;margin-bottom:10px;background:var(--panel-2)}
 .sheet-card.off{opacity:.55}
@@ -119,13 +113,11 @@ button{font-family:inherit;cursor:pointer;transition:all .15s}
 .empty-hint{font-size:12.5px;color:var(--ink-3);font-style:italic}
 .warn-text{color:var(--warn);font-weight:500}
 
-/* 配置行 */
 .cfg-row{display:flex;align-items:center;gap:14px;flex-wrap:wrap;
   padding:11px 14px;margin-top:10px;border:1px solid var(--line);border-radius:8px;background:var(--panel-2)}
 .cfg-row .lbl{font-size:12.5px;color:var(--ink-2);font-weight:600;min-width:70px;letter-spacing:.02em}
 .cfg-row select{width:auto;min-width:220px;margin:0;padding:6px 10px;font-size:13px}
 
-/* 区间项 */
 .interval-item{display:flex;align-items:center;gap:12px;flex-wrap:wrap;
   padding:10px 14px;border-radius:8px;margin-top:7px;background:#fff;border:1px solid var(--line)}
 .interval-item.on{border-color:var(--brand-2);background:linear-gradient(135deg,#f0f8f5,#fff)}
@@ -140,7 +132,6 @@ button{font-family:inherit;cursor:pointer;transition:all .15s}
 .iv-status.ok{color:var(--good)}
 .iv-status.bad{color:var(--bad)}
 
-/* 统计 */
 #stats{display:none;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px}
 #stats.on{display:grid}
 .stat{background:var(--panel);border:1px solid var(--line);border-radius:10px;
@@ -156,7 +147,6 @@ button{font-family:inherit;cursor:pointer;transition:all .15s}
 .stat.warn .num{color:var(--warn)}
 .stat .cap{font-size:12.5px;color:var(--ink-2);margin-top:4px}
 
-/* 结果表 */
 #summary-wrap{display:none}
 #summary-wrap.on{display:block}
 .tbl-tools{display:flex;gap:12px;align-items:center;margin:8px 0 12px;flex-wrap:wrap}
@@ -182,28 +172,24 @@ td.status-good{color:var(--good);font-weight:700}
 td.status-bad{color:var(--bad);font-weight:700}
 td.status-warn{color:var(--warn);font-weight:700}
 
-/* 日志 */
 #log{background:#0f1512;color:#d7dbd6;border-radius:9px;padding:14px 18px;
   max-height:400px;overflow-y:auto;white-space:pre-wrap;word-break:break-word;
   font-family:var(--mono);font-size:12.5px;line-height:1.65}
 #log .t{color:#6e7a70;user-select:none}
 #log b{color:#7dd3a7}
 
-/* 图例 */
 #legend{font-size:12.5px;line-height:2}
 .legend-item{display:inline-flex;align-items:center;margin:2px 14px 2px 0;
   font-family:var(--mono);font-size:12px}
 .legend-swatch{display:inline-block;width:15px;height:15px;
   border:1px solid rgba(0,0,0,.18);margin-right:6px;border-radius:3px}
 
-/* 下载 */
 #downloads a{display:inline-flex;align-items:center;gap:8px;margin:8px 10px 0 0;
   padding:11px 22px;background:linear-gradient(135deg,var(--brand),var(--brand-2));
   color:#fff;text-decoration:none;border-radius:8px;font-size:14px;font-weight:600;
   box-shadow:0 2px 6px rgba(13,83,68,.2);transition:all .15s}
 #downloads a:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(13,83,68,.3)}
 
-/* 提示 */
 .note{background:linear-gradient(135deg,#fdf9ee,#fdf6e3);border:1px solid #ede0b8;
   border-left:3px solid var(--gold);border-radius:7px;padding:10px 14px;
   font-size:12.5px;color:#6a5d21;line-height:1.65}
@@ -227,7 +213,7 @@ td.status-warn{color:var(--warn);font-weight:700}
     <div class="brand-text">
       <div class="brand-company">SHENZHEN LIXIN LOGISTICS</div>
       <div class="brand-title">深圳市利鑫物流有限公司</div>
-      <div class="brand-sub">Excel 数据核对工具 · 集合匹配 / 查值核对</div>
+      <div class="brand-sub">Excel 数据核对工具 · 集合匹配 / 查值核对·填充</div>
     </div>
   </div>
 </header>
@@ -244,8 +230,8 @@ td.status-warn{color:var(--warn);font-weight:700}
     </label>
     <label class="mode-card" data-mode="lookup">
       <input type="radio" name="mode" value="lookup">
-      <div class="mode-name">查值核对</div>
-      <div class="mode-desc">用「键」在规则表/矩阵表里定位一条记录，取出值，和明细表逐行核对。适合单价、折扣、税率核对。</div>
+      <div class="mode-name">查值核对 / 填充</div>
+      <div class="mode-desc">用「键」在矩阵表或规则表里定位一条记录：<b>填充</b>把取到的值写入明细表；<b>核对</b>与明细表现有值比对。</div>
     </label>
   </div>
 </section>
@@ -272,6 +258,7 @@ td.status-warn{color:var(--warn);font-weight:700}
 
 <section class="card" id="settingsPanel" style="display:none">
   <h2 class="card-title"><span class="num">4</span>处理与导出设置</h2>
+
   <div class="grid-2" id="settingsSet">
     <label class="field">高亮颜色模式
       <select id="colorMode">
@@ -283,18 +270,26 @@ td.status-warn{color:var(--warn);font-weight:700}
       统一填充色：<input type="color" id="uniformColor" value="#ffe08a">
     </label>
   </div>
+
   <div class="grid-2" id="settingsLookup" style="display:none">
-    <label class="field">数值比较容差
-      <input type="number" id="tolerance" value="0.01" step="0.0001" min="0">
-      <span class="hint">两边数值差在此范围内视为一致。填 0 表示严格相等。</span>
+    <label class="field full">操作类型
+      <select id="actionMode">
+        <option value="fill">填充：把主表取到的值写入明细表的目标列（会覆盖该列现有值）</option>
+        <option value="check">核对：读明细表现有值，与主表值比对是否一致</option>
+      </select>
     </label>
-    <label class="field">核对异常处理
+    <label class="field">数值比较容差（仅核对模式使用）
+      <input type="number" id="tolerance" value="0.01" step="0.0001" min="0">
+      <span class="hint">两边数值差在此范围内视为一致。</span>
+    </label>
+    <label class="field">核对异常处理（仅核对模式使用）
       <select id="onMiss">
-        <option value="mark">标黄高亮，便于人工复查</option>
-        <option value="skip">跳过（不高亮，仅记日志）</option>
+        <option value="mark">标黄高亮</option>
+        <option value="skip">跳过不高亮</option>
       </select>
     </label>
   </div>
+
   <div class="note" style="margin-top:14px">
     导出时固定：① 追加「核对汇总」Sheet；② 清除原文件中的条件格式（避免旧规则与本次高亮叠加）。
   </div>
@@ -342,9 +337,8 @@ td.status-warn{color:var(--warn);font-weight:700}
 
 <script>
 /* ==================================================================
-   一、核心工具函数
+   一、核心工具
    ================================================================== */
-
 function getCellText(cell){
   if(!cell)return '';
   const v=cell.value;
@@ -376,7 +370,6 @@ function normalize(raw){
     .replace(DASHES,'-').replace(QUOTES,'"').replace(APOSTROPHES,"'")
     .toUpperCase();
 }
-
 function extractNumber(raw){
   if(raw===null||raw===undefined)return null;
   if(typeof raw==='number')return isFinite(raw)?raw:null;
@@ -387,8 +380,6 @@ function extractNumber(raw){
   const n=parseFloat(m[0]);
   return isFinite(n)?n:null;
 }
-
-/* 从列头文本解析区间 [min, max) */
 function parseInterval(text){
   const raw=String(text||'').trim();
   if(!raw)return {min:null,max:null,valid:false,raw,note:'空'};
@@ -407,7 +398,6 @@ function parseInterval(text){
   return {min:null,max:null,valid:false,raw,note:'无数字'};
 }
 
-/* 合并单元格解析 */
 const mergeCache=new WeakMap();
 function colToNum(letters){let n=0;for(const ch of letters.toUpperCase())n=n*26+(ch.charCodeAt(0)-64);return n;}
 function numToCol(n){let s='';while(n>0){const m=(n-1)%26;s=String.fromCharCode(65+m)+s;n=(n-m-1)/26;}return s;}
@@ -427,7 +417,6 @@ function resolveMaster(mr,r,c){
   const m=mr.masterOf.get(r+':'+c);return m?{row:m.row,col:m.col}:{row:r,col:c};
 }
 
-/* 读工作簿 */
 function convertWithSheetJS(data,note){
   const wbOld=XLSX.read(data,{type:'array',cellDates:true});
   const wb=new ExcelJS.Workbook();
@@ -452,8 +441,6 @@ async function readWorkbook(file){
     return convertWithSheetJS(data,'标准解析失败（'+(err&&err.message?err.message:err)+'），已用兼容模式读取');
   }
 }
-
-/* 清除条件格式 */
 async function stripCF(buffer){
   const zip=await JSZip.loadAsync(buffer);
   const targets=[];
@@ -467,14 +454,12 @@ async function stripCF(buffer){
   }
   return zip.generateAsync({type:'arraybuffer'});
 }
-
-/* 单元格填充 */
 function setFill(cell,argb){
   cell.style=Object.assign({},cell.style,{fill:{type:'pattern',pattern:'solid',fgColor:{argb}}});
 }
 
 /* ==================================================================
-   二、模式一：集合匹配
+   二、集合匹配
    ================================================================== */
 const KEY_SEP='\u0001';
 function buildRowKey(sheet,mr,r,cols,headerRow){
@@ -596,10 +581,10 @@ function appendSummarySet(wb,matched,label){
 }
 
 /* ==================================================================
-   三、模式二：查值核对
+   三、查值核对 / 填充
    ================================================================== */
 
-/* 主表被展平成规则 */
+/* 把主表展平成规则；每条规则：keys[] + value{raw,num,original} */
 function buildRules(wb,cfgMap,shape){
   const rules=[];
   wb.worksheets.forEach(sheet=>{
@@ -624,13 +609,22 @@ function buildRules(wb,cfgMap,shape){
         if(!regionNorm)continue;
         for(const iv of intervals){
           const cp=resolveMaster(mr,r,iv.col);
-          const priceRaw=(cp.row<=headerRow)?'':getCellText(sheet.getRow(cp.row).getCell(cp.col));
+          if(cp.row<=headerRow){
+            rules.push({
+              keys:[{value:regionNorm,raw:regionRaw,mode:'exact'},{value:[iv.min,iv.max],raw:iv.raw,mode:'range'}],
+              value:{raw:'',num:null,original:null},
+              source:{sheet:sheet.name,row:r},
+              label:regionRaw+' | '+iv.raw
+            });
+            continue;
+          }
+          const vCell=sheet.getRow(cp.row).getCell(cp.col);
+          const vRaw=getCellText(vCell);
+          let original=vCell.value;
+          if(original!==null&&original!==undefined&&typeof original==='object')original=vRaw;
           rules.push({
-            keys:[
-              {value:regionNorm,raw:regionRaw,mode:'exact'},
-              {value:[iv.min,iv.max],raw:iv.raw,mode:'range'}
-            ],
-            value:{raw:priceRaw,num:extractNumber(priceRaw)},
+            keys:[{value:regionNorm,raw:regionRaw,mode:'exact'},{value:[iv.min,iv.max],raw:iv.raw,mode:'range'}],
+            value:{raw:vRaw,num:extractNumber(vRaw),original},
             source:{sheet:sheet.name,row:r},
             label:regionRaw+' | '+iv.raw
           });
@@ -640,12 +634,10 @@ function buildRules(wb,cfgMap,shape){
       const keyCols=c.keyCols||[];
       if(keyCols.length===0||c.valueCol==null)return;
       for(let r=headerRow+1;r<=rowCount;r++){
-        const kvs=[];let empty=true;
-        let skip=false;
+        const kvs=[];let empty=true,skip=false;
         for(const kc of keyCols){
           if(kc.col==null){skip=true;break;}
           const p=resolveMaster(mr,r,kc.col);
-          if(p.row<r){skip=true;break;}
           const v=(p.row<=headerRow)?'':getCellText(sheet.getRow(p.row).getCell(p.col));
           const norm=normalize(v);
           kvs.push({raw:v,norm,mode:kc.mode});
@@ -653,10 +645,14 @@ function buildRules(wb,cfgMap,shape){
         }
         if(skip||empty)continue;
         const vp=resolveMaster(mr,r,c.valueCol);
-        const vRaw=(vp.row<=headerRow)?'':getCellText(sheet.getRow(vp.row).getCell(vp.col));
+        if(vp.row<=headerRow)continue;
+        const vCell=sheet.getRow(vp.row).getCell(vp.col);
+        const vRaw=getCellText(vCell);
+        let original=vCell.value;
+        if(original!==null&&original!==undefined&&typeof original==='object')original=vRaw;
         rules.push({
           keys:kvs.map(k=>({value:k.norm,raw:k.raw,mode:k.mode})),
-          value:{raw:vRaw,num:extractNumber(vRaw)},
+          value:{raw:vRaw,num:extractNumber(vRaw),original},
           source:{sheet:sheet.name,row:r},
           label:kvs.map(k=>k.raw).join(' | ')
         });
@@ -693,7 +689,11 @@ function findRule(rules,lookupKeys){
   return null;
 }
 
-function crossCheck(wbB,cfgB,rules,tolerance){
+/* 核心：逐行处理
+   actionMode='fill'  → 把主表的值写入明细表的目标列
+   actionMode='check' → 读明细表现有值，与主表值比对
+*/
+function processLookup(wbB,cfgB,rules,tolerance,actionMode){
   const results=[];
   wbB.worksheets.forEach(sheet=>{
     const c=cfgB.get(sheet.name);if(!c||!c.enabled)return;
@@ -703,35 +703,59 @@ function crossCheck(wbB,cfgB,rules,tolerance){
     const mr=getMergeResolver(sheet);
     const rowCount=sheet.rowCount||0;
     for(let r=headerRow+1;r<=rowCount;r++){
+      // 收集键值（不跳过合并从属行，因为每行都是独立记录）
       const rawKeys=[];let empty=true;
       for(const col of keyCols){
         const p=resolveMaster(mr,r,col);
         const v=(p.row<=headerRow)?'':getCellText(sheet.getRow(p.row).getCell(p.col));
-        rawKeys.push(v);if(v)empty=false;
+        rawKeys.push(v);
+        if(v)empty=false;
       }
-      const vp=resolveMaster(mr,r,c.valueCol);
-      const bValRaw=(vp.row<=headerRow)?'':getCellText(sheet.getRow(vp.row).getCell(vp.col));
-      if(bValRaw)empty=false;
+      // 核对模式才读目标列原值
+      let bValRaw='',bNum=null;
+      if(actionMode==='check'){
+        const vp=resolveMaster(mr,r,c.valueCol);
+        bValRaw=(vp.row<=headerRow)?'':getCellText(sheet.getRow(vp.row).getCell(vp.col));
+        bNum=extractNumber(bValRaw);
+        if(bValRaw)empty=false;
+      }
       if(empty)continue;
 
       const res={
         sheetB:sheet.name,rowB:r,
-        rawKeys,bValRaw,bNum:extractNumber(bValRaw),
+        rawKeys,bValRaw,bNum,
         matchedLabel:'',aValRaw:'',aNum:null,
-        status:'',diff:null
+        status:'',diff:null,filled:false
       };
+
       const hit=findRule(rules,rawKeys);
-      if(!hit){res.status='主表未找到';}
-      else{
+      if(!hit){
+        res.status='主表未找到';
+      }else{
         res.matchedLabel=hit.label;
         res.aValRaw=hit.value.raw;
         res.aNum=hit.value.num;
-        if(res.bNum===null){res.status='明细值非数值';}
-        else if(res.aNum===null){res.status='主表值非数值';}
-        else{
-          const d=res.bNum-res.aNum;
-          res.diff=d;
-          res.status=Math.abs(d)<=tolerance?'一致':'不一致';
+
+        if(actionMode==='fill'){
+          if(hit.value.raw===''||hit.value.original===null||hit.value.original===undefined){
+            res.status='主表无值';
+          }else{
+            const vp=resolveMaster(mr,r,c.valueCol);
+            const targetCell=sheet.getRow(vp.row).getCell(vp.col);
+            const orig=hit.value.original;
+            if(typeof orig==='number')targetCell.value=orig;
+            else targetCell.value=hit.value.raw;
+            res.status='已填充';
+            res.filled=true;
+          }
+        }else{
+          if(res.bNum===null){res.status='明细值非数值';}
+          else if(res.aNum===null){res.status='主表值非数值';}
+          else{
+            const d=res.bNum-res.aNum;
+            res.diff=d;
+            res.status=Math.abs(d)<=tolerance?'一致':'不一致';
+          }
         }
       }
       results.push(res);
@@ -753,10 +777,11 @@ function highlightLookup(wb,results,cfgB,onMiss){
     for(let r=1;r<=(sheet.rowCount||0);r++){
       const res=byKey.get(sheet.name+'!'+r);if(!res)continue;
       let color;
-      if(res.status==='一致')color=C_GOOD;
+      if(res.status==='一致'||res.status==='已填充')color=C_GOOD;
       else if(res.status==='不一致')color=C_BAD;
-      else color=(onMiss==='skip')?null:C_WARN;
+      else color=(onMiss==='skip'&&res.status!=='主表未找到'&&res.status!=='主表无值')?null:C_WARN;
       if(!color)continue;
+      // 只高亮键列 + 目标列（整行的所有字段），让用户可以一眼看到填充位置
       for(const col of [...keyCols,c.valueCol]){
         const p=resolveMaster(mr,r,col);
         const rg=mr.rangeOf.get(p.row+':'+p.col);
@@ -770,32 +795,54 @@ function highlightLookup(wb,results,cfgB,onMiss){
   });
 }
 
-function appendSummaryLookup(wb,results){
-  let name='核对汇总',n=2;
-  while(wb.getWorksheet(name))name='核对汇总_'+(n++);
+function appendSummaryLookup(wb,results,actionMode){
+  let name=actionMode==='fill'?'填充汇总':'核对汇总',n=2;
+  while(wb.getWorksheet(name))name=(actionMode==='fill'?'填充汇总_':'核对汇总_')+(n++);
   const ws=wb.addWorksheet(name);
-  ws.columns=[
-    {header:'Sheet',key:'s',width:16},
-    {header:'行号',key:'r',width:8},
-    {header:'查找键',key:'keys',width:36},
-    {header:'明细值',key:'bv',width:16},
-    {header:'命中规则',key:'hit',width:36},
-    {header:'主表值',key:'av',width:16},
-    {header:'结果',key:'st',width:14},
-    {header:'差值',key:'diff',width:12}
-  ];
-  ws.getRow(1).font={bold:true};
-  ws.getRow(1).fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFE8F3EF'}};
-  for(const r of results){
-    ws.addRow({
-      s:r.sheetB,r:r.rowB,
-      keys:r.rawKeys.join(' | '),
-      bv:r.bNum===null?r.bValRaw:r.bNum,
-      hit:r.matchedLabel,
-      av:r.aNum===null?r.aValRaw:r.aNum,
-      st:r.status,
-      diff:r.diff===null?'':r.diff
-    });
+  if(actionMode==='fill'){
+    ws.columns=[
+      {header:'Sheet',key:'s',width:16},
+      {header:'行号',key:'r',width:8},
+      {header:'查找键',key:'keys',width:36},
+      {header:'命中位置',key:'hit',width:36},
+      {header:'填充值',key:'v',width:16},
+      {header:'状态',key:'st',width:14}
+    ];
+    ws.getRow(1).font={bold:true};
+    ws.getRow(1).fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFE8F3EF'}};
+    for(const r of results){
+      ws.addRow({
+        s:r.sheetB,r:r.rowB,
+        keys:r.rawKeys.join(' | '),
+        hit:r.matchedLabel,
+        v:r.aNum===null?r.aValRaw:r.aNum,
+        st:r.status
+      });
+    }
+  }else{
+    ws.columns=[
+      {header:'Sheet',key:'s',width:16},
+      {header:'行号',key:'r',width:8},
+      {header:'查找键',key:'keys',width:36},
+      {header:'明细值',key:'bv',width:16},
+      {header:'命中规则',key:'hit',width:36},
+      {header:'主表值',key:'av',width:16},
+      {header:'结果',key:'st',width:14},
+      {header:'差值',key:'diff',width:12}
+    ];
+    ws.getRow(1).font={bold:true};
+    ws.getRow(1).fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFE8F3EF'}};
+    for(const r of results){
+      ws.addRow({
+        s:r.sheetB,r:r.rowB,
+        keys:r.rawKeys.join(' | '),
+        bv:r.bNum===null?r.bValRaw:r.bNum,
+        hit:r.matchedLabel,
+        av:r.aNum===null?r.aValRaw:r.aNum,
+        st:r.status,
+        diff:r.diff===null?'':r.diff
+      });
+    }
   }
 }
 
@@ -804,7 +851,8 @@ function appendSummaryLookup(wb,results){
    ================================================================== */
 const S={
   mode:'set',
-  shape:'matrix',  // 主表形态：matrix / rules
+  shape:'matrix',
+  actionMode:'fill',   // 'fill' | 'check'
   files:{A:{wb:null,file:null},B:{wb:null,file:null}},
   setCfg:{A:new Map(),B:new Map()},
   lookupCfg:{A:new Map(),B:new Map()},
@@ -812,7 +860,6 @@ const S={
 };
 let gSortKey='label',gSortAsc=true;
 
-/* 初始化配置 */
 function initCfgs(){
   const {A,B}=S.files;
   S.setCfg={A:new Map(),B:new Map()};
@@ -821,25 +868,19 @@ function initCfgs(){
     S.setCfg.A.set(sh.name,{enabled:true,headerRow:null,cols:new Set()});
     S.lookupCfg.A.set(sh.name,{
       enabled:true,headerRow:null,
-      regionCol:null,           // matrix
-      intervalCols:new Map(),   // matrix: col -> {min,max,valid,raw}
-      keyCols:[],               // rules: [{col,mode}]
-      valueCol:null             // rules
+      regionCol:null,intervalCols:new Map(),
+      keyCols:[],valueCol:null
     });
   });
   B.wb.worksheets.forEach(sh=>{
     S.setCfg.B.set(sh.name,{enabled:true,headerRow:null,cols:new Set()});
     S.lookupCfg.B.set(sh.name,{
       enabled:true,headerRow:null,
-      keyCols:[],               // [col,...]
-      valueCol:null
+      keyCols:[],valueCol:null
     });
   });
 }
 
-/* ==================================================================
-   五、日志
-   ================================================================== */
 function log(html){
   const div=document.getElementById('log');
   const t=new Date().toTimeString().slice(0,8);
@@ -850,7 +891,7 @@ function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;',
 function trunc(s,n){s=String(s);return s.length>n?s.slice(0,n-1)+'…':s;}
 
 /* ==================================================================
-   六、模式切换
+   五、模式切换
    ================================================================== */
 document.getElementById('modeGrid').addEventListener('click',e=>{
   const card=e.target.closest('.mode-card');if(!card)return;
@@ -859,14 +900,21 @@ document.getElementById('modeGrid').addEventListener('click',e=>{
   document.querySelectorAll('.mode-card').forEach(c=>c.classList.toggle('active',c.dataset.mode===m));
   card.querySelector('input').checked=true;
   document.getElementById('hintA').textContent=m==='set'?'可多 Sheet，支持 .xlsx / .xls':'主表：矩阵表（地区×重量区间→单价）或规则表';
-  document.getElementById('hintB').textContent=m==='set'?'可多 Sheet，支持 .xlsx / .xls':'明细表：含查找键列 + 待比对的值列';
+  document.getElementById('hintB').textContent=m==='set'?'可多 Sheet，支持 .xlsx / .xls':'明细表：含查找键列 + 待填充/待比对的值列';
   document.getElementById('settingsSet').style.display=m==='set'?'grid':'none';
   document.getElementById('settingsLookup').style.display=m==='set'?'none':'grid';
   renderConfigPanel();
 });
 
+/* 操作类型切换（填充 / 核对） */
+document.getElementById('actionMode').addEventListener('change',e=>{
+  S.actionMode=e.target.value;
+  // 目标列/比对值列的文案会变，重渲染明细表配置
+  renderLookupB();
+});
+
 /* ==================================================================
-   七、读文件
+   六、读文件
    ================================================================== */
 async function readFiles(){
   const fa=document.getElementById('fileA').files[0];
@@ -906,7 +954,7 @@ async function readFiles(){
 }
 
 /* ==================================================================
-   八、配置面板渲染
+   七、配置面板渲染
    ================================================================== */
 function renderConfigPanel(){
   const p=document.getElementById('configPanel');
@@ -915,7 +963,7 @@ function renderConfigPanel(){
   else renderLookupPanel(p);
 }
 
-/* ---------- 集合匹配面板 ---------- */
+/* ---------- 集合匹配 ---------- */
 function renderSetPanel(p){
   p.innerHTML='<section class="card"><h2 class="card-title"><span class="num">3</span>选择参与匹配的 Sheet 与列<span class="sub">集合匹配</span></h2>'+
     '<div class="note" style="margin-bottom:14px">勾选 Sheet、填表头行号、勾选参与匹配的列（可多选）。所选列的值全部相同（忽略空格/全角/半角/隐藏字符）才算匹配。</div>'+
@@ -966,9 +1014,9 @@ function renderSetCols(side,sheetName){
   return html||'<span class="empty-hint">该行没有可用列</span>';
 }
 
-/* ---------- 查值核对面板 ---------- */
+/* ---------- 查值核对 / 填充 ---------- */
 function renderLookupPanel(p){
-  p.innerHTML='<section class="card"><h2 class="card-title"><span class="num">3</span>主表（文件 A）配置<span class="sub">查值核对 · 提供"规则/报价"</span></h2>'+
+  p.innerHTML='<section class="card"><h2 class="card-title"><span class="num">3</span>主表（文件 A）配置<span class="sub">提供"规则/报价"</span></h2>'+
     '<div class="note" style="margin-bottom:14px">选择主表形态：<b>矩阵表</b>（横向表头是重量区间，交叉格子是值）或 <b>规则表</b>（每行一条规则，包含若干键列和一个值列）。</div>'+
     '<div class="cfg-row">'+
       '<span class="lbl">主表形态</span>'+
@@ -979,26 +1027,20 @@ function renderLookupPanel(p){
       '<span class="empty-hint">切换形态后主表已填配置会重置。</span>'+
     '</div>'+
     '<div id="mxSelA"></div></section>'+
-    '<section class="card"><h2 class="card-title"><span class="num">4</span>明细表（文件 B）配置<span class="sub">逐行核对</span></h2>'+
-    '<div class="note" style="margin-bottom:14px">为每个启用的 Sheet 指定表头行，并按顺序选择与主表一一对应的键列，再选择要比对的值列。</div>'+
+    '<section class="card"><h2 class="card-title"><span class="num">4</span>明细表（文件 B）配置<span class="sub">'+(S.actionMode==='fill'?'填充目标':'逐行核对')+'</span></h2>'+
+    '<div class="note" style="margin-bottom:14px">为每个启用的 Sheet 指定表头行，按顺序选择与主表一一对应的键列，再选择 '+(S.actionMode==='fill'?'要写入的目标列':'要比对的值列')+'。</div>'+
     '<div id="mxSelB"></div></section>';
   renderLookupA();renderLookupB();
 }
-
 function onShapeChange(newShape){
   if(newShape===S.shape)return;
   S.shape=newShape;
-  // 重置主表配置
   S.lookupCfg.A.forEach(c=>{
-    c.regionCol=null;
-    c.intervalCols=new Map();
-    c.keyCols=[];
-    c.valueCol=null;
+    c.regionCol=null;c.intervalCols=new Map();
+    c.keyCols=[];c.valueCol=null;
   });
   renderLookupA();
 }
-
-/* 主表面板 */
 function renderLookupA(){
   const c=document.getElementById('mxSelA');
   const st=S.files.A;
@@ -1013,18 +1055,13 @@ function renderLookupA(){
         '<span style="font-size:12px;color:var(--ink-3)">表头行</span>'+
         '<input type="number" class="sh-header" data-side="A" data-sheet="'+nm+'" value="'+hv+'" placeholder="必填" min="1" max="500">'+
       '</div>';
-    if(cfg.headerRow==null){
-      html+='<div class="empty-hint" style="margin-top:10px">请先填写表头行号</div>';
-    }else if(S.shape==='matrix'){
-      html+=renderMatrixA(sheet.name,cfg);
-    }else{
-      html+=renderRulesA(sheet.name,cfg);
-    }
+    if(cfg.headerRow==null)html+='<div class="empty-hint" style="margin-top:10px">请先填写表头行号</div>';
+    else if(S.shape==='matrix')html+=renderMatrixA(sheet.name,cfg);
+    else html+=renderRulesA(sheet.name,cfg);
     html+='</div>';
   });
   c.innerHTML=html||'<div class="empty-hint">没有可用的 Sheet</div>';
 }
-
 function headerOptions(sheet,headerRow){
   const mr=getMergeResolver(sheet);
   const maxCol=Math.min(Math.max(sheet.columnCount||0,1),120);
@@ -1036,13 +1073,11 @@ function headerOptions(sheet,headerRow){
   }
   return opts;
 }
-
 function renderMatrixA(sheetName,cfg){
   const sheet=S.files.A.wb.getWorksheet(sheetName);
   if(!sheet)return '';
   const opts=headerOptions(sheet,cfg.headerRow);
 
-  // 行键列下拉
   let regionOpts='<option value="">-- 请选择 --</option>';
   for(const o of opts){
     const sel=cfg.regionCol===o.col?' selected':'';
@@ -1050,9 +1085,8 @@ function renderMatrixA(sheetName,cfg){
   }
   let regionRow='<div class="cfg-row"><span class="lbl">行键列</span>'+
     '<select class="region-col" data-side="A" data-sheet="'+esc(sheetName)+'">'+regionOpts+'</select>'+
-    '<span class="empty-hint">例如：地区/线路</span></div>';
+    '<span class="empty-hint">例如：城市/地区/线路</span></div>';
 
-  // 区间列表
   let ivHtml;
   if(cfg.regionCol==null){
     ivHtml='<div class="cfg-row" style="display:block"><div style="font-size:12.5px;color:var(--ink-2);font-weight:600;margin-bottom:6px">重量区间列</div>'+
@@ -1066,9 +1100,7 @@ function renderMatrixA(sheetName,cfg){
       const minV=(iv&&iv.min!=null)?iv.min:'';
       const maxV=(iv&&iv.max!=null)?iv.max:'';
       let statusHtml='';
-      if(iv){
-        statusHtml=iv.valid?'<span class="iv-status ok">✓</span>':'<span class="iv-status bad">?</span>';
-      }
+      if(iv)statusHtml=iv.valid?'<span class="iv-status ok">✓</span>':'<span class="iv-status bad">?</span>';
       items+='<div class="interval-item'+(checked?' on':'')+'" data-side="A" data-sheet="'+esc(sheetName)+'" data-col="'+o.col+'">'+
         '<label class="iv-head">'+
           '<input type="checkbox" class="iv-cb" '+(checked?'checked':'')+'>'+
@@ -1089,13 +1121,11 @@ function renderMatrixA(sheetName,cfg){
   }
   return regionRow+ivHtml;
 }
-
 function renderRulesA(sheetName,cfg){
   const sheet=S.files.A.wb.getWorksheet(sheetName);
   if(!sheet)return '';
   const opts=headerOptions(sheet,cfg.headerRow);
   const nm=esc(sheetName);
-
   let keysHtml='';
   if(cfg.keyCols.length===0){
     keysHtml='<div class="empty-hint" style="padding:6px 0">尚未添加键列，请点下方"添加键列"</div>';
@@ -1106,7 +1136,7 @@ function renderRulesA(sheetName,cfg){
         const sel=kc.col===o.col?' selected':'';
         opt+='<option value="'+o.col+'"'+sel+'>'+esc(numToCol(o.col)+(o.text?'：'+o.text:''))+'</option>';
       }
-      keysHtml+='<div class="cfg-row" data-role="key-row" data-side="A" data-sheet="'+nm+'" data-idx="'+i+'">'+
+      keysHtml+='<div class="cfg-row" data-side="A" data-sheet="'+nm+'" data-idx="'+i+'">'+
         '<span class="lbl">键'+(i+1)+'</span>'+
         '<select class="key-col" data-side="A" data-sheet="'+nm+'" data-idx="'+i+'">'+opt+'</select>'+
         '<select class="key-mode" data-side="A" data-sheet="'+nm+'" data-idx="'+i+'">'+
@@ -1134,8 +1164,6 @@ function renderRulesA(sheetName,cfg){
       '<span class="empty-hint">例如：单价、折扣率</span>'+
     '</div>';
 }
-
-/* 明细表面板 */
 function renderLookupB(){
   const c=document.getElementById('mxSelB');
   const st=S.files.B;
@@ -1150,11 +1178,8 @@ function renderLookupB(){
         '<span style="font-size:12px;color:var(--ink-3)">表头行</span>'+
         '<input type="number" class="sh-header" data-side="B" data-sheet="'+nm+'" value="'+hv+'" placeholder="必填" min="1" max="500">'+
       '</div>';
-    if(cfg.headerRow==null){
-      html+='<div class="empty-hint" style="margin-top:10px">请先填写表头行号</div>';
-    }else{
-      html+=renderLookupBConfig(sheet.name,cfg);
-    }
+    if(cfg.headerRow==null)html+='<div class="empty-hint" style="margin-top:10px">请先填写表头行号</div>';
+    else html+=renderLookupBConfig(sheet.name,cfg);
     html+='</div>';
   });
   c.innerHTML=html||'<div class="empty-hint">没有可用的 Sheet</div>';
@@ -1164,6 +1189,9 @@ function renderLookupBConfig(sheetName,cfg){
   if(!sheet)return '';
   const opts=headerOptions(sheet,cfg.headerRow);
   const nm=esc(sheetName);
+  const isFill=S.actionMode==='fill';
+  const valueLabel=isFill?'目标列（写入此列）':'比对值列（与主表比对）';
+  const valueHint=isFill?'例如：单价（此列会被覆盖）':'例如：单价';
 
   let keysHtml='';
   if(cfg.keyCols.length===0){
@@ -1175,7 +1203,7 @@ function renderLookupBConfig(sheetName,cfg){
         const sel=col===o.col?' selected':'';
         opt+='<option value="'+o.col+'"'+sel+'>'+esc(numToCol(o.col)+(o.text?'：'+o.text:''))+'</option>';
       }
-      keysHtml+='<div class="cfg-row" data-role="key-row" data-side="B" data-sheet="'+nm+'" data-idx="'+i+'">'+
+      keysHtml+='<div class="cfg-row" data-side="B" data-sheet="'+nm+'" data-idx="'+i+'">'+
         '<span class="lbl">键'+(i+1)+'</span>'+
         '<select class="b-key-col" data-side="B" data-sheet="'+nm+'" data-idx="'+i+'">'+opt+'</select>'+
         '<button class="btn-mini" data-act="del-key" data-side="B" data-sheet="'+nm+'" data-idx="'+i+'">删除</button>'+
@@ -1192,25 +1220,23 @@ function renderLookupBConfig(sheetName,cfg){
     keysHtml+
     '<button class="btn-mini" data-act="add-key" data-side="B" data-sheet="'+nm+'" style="margin-top:8px">+ 添加键列</button>'+
     '</div>'+
-    '<div class="cfg-row"><span class="lbl">比对值列</span>'+
+    '<div class="cfg-row"><span class="lbl">'+valueLabel+'</span>'+
       '<select class="b-value-col" data-side="B" data-sheet="'+nm+'">'+vOpt+'</select>'+
-      '<span class="empty-hint">例如：单价</span>'+
+      '<span class="empty-hint">'+valueHint+'</span>'+
     '</div>';
 }
 
 /* ==================================================================
-   九、配置面板事件（关键：所有动态元素的事件都通过委托处理）
+   八、配置事件（全部用委托，动态元素通过父级读取 data-*）
    ================================================================== */
 const cfgPanel=document.getElementById('configPanel');
 
-/* ---------- change 事件 ---------- */
+/* ---------- change ---------- */
 cfgPanel.addEventListener('change',e=>{
   const t=e.target;
 
-  // 主表形态切换
   if(t.id==='shapeSelect'){onShapeChange(t.value);return;}
 
-  // 找到最近的 .sheet-card 或 .interval-item 作为上下文
   const card=t.closest('.sheet-card');
   const ivItem=t.closest('.interval-item');
 
@@ -1220,23 +1246,16 @@ cfgPanel.addEventListener('change',e=>{
     const col=parseInt(ivItem.dataset.col,10);
     const cfg=S.lookupCfg.A.get(sheetName);if(!cfg)return;
     if(t.checked){
-      // 从列头解析
       const sheet=S.files.A.wb.getWorksheet(sheetName);
       const opts=headerOptions(sheet,cfg.headerRow);
       const o=opts.find(x=>x.col===col);
       const parsed=parseInterval(o?o.text:'');
-      // 若已存在（之前填过），保留填过的值
       const existing=cfg.intervalCols.get(col);
-      if(existing){
-        parsed.min=existing.min;
-        parsed.max=existing.max;
-        parsed.valid=existing.valid;
-      }
+      if(existing){parsed.min=existing.min;parsed.max=existing.max;parsed.valid=existing.valid;}
       cfg.intervalCols.set(col,parsed);
     }else{
       cfg.intervalCols.delete(col);
     }
-    // 局部更新：只更新这一项的 UI
     const iv=cfg.intervalCols.get(col);
     const minIn=ivItem.querySelector('.iv-min');
     const maxIn=ivItem.querySelector('.iv-max');
@@ -1245,9 +1264,7 @@ cfgPanel.addEventListener('change',e=>{
       ivItem.classList.add('on');
       if(iv.min!=null)minIn.value=iv.min;else minIn.value='';
       if(iv.max!=null)maxIn.value=iv.max;else maxIn.value='';
-      let s='';
-      if(iv.valid)s='<span class="iv-status ok">✓</span>';
-      else s='<span class="iv-status bad">?</span>';
+      const s=iv.valid?'<span class="iv-status ok">✓</span>':'<span class="iv-status bad">?</span>';
       if(oldStatus)oldStatus.outerHTML=s;
       else ivItem.querySelector('.iv-edit').insertAdjacentHTML('beforeend',s);
     }else{
@@ -1257,18 +1274,13 @@ cfgPanel.addEventListener('change',e=>{
     return;
   }
 
-  // ---- Sheet 启用勾选 / 表头行 ----
+  // ---- Sheet 启用 / 表头行 ----
   if(card){
     const side=card.dataset.side;
     const sheetName=card.dataset.sheet;
     if(t.classList.contains('sh-enable')){
-      if(S.mode==='set'){
-        const cfg=S.setCfg[side].get(sheetName);if(!cfg)return;
-        cfg.enabled=t.checked;
-      }else{
-        const cfg=S.lookupCfg[side].get(sheetName);if(!cfg)return;
-        cfg.enabled=t.checked;
-      }
+      const cfg=(S.mode==='set'?S.setCfg:S.lookupCfg)[side].get(sheetName);if(!cfg)return;
+      cfg.enabled=t.checked;
       card.classList.toggle('off',!t.checked);
       return;
     }
@@ -1279,8 +1291,7 @@ cfgPanel.addEventListener('change',e=>{
       if(S.mode==='set'){
         const cfg=S.setCfg[side].get(sheetName);if(!cfg)return;
         cfg.headerRow=hdr;
-        if(hdr==null){t.value='';cfg.cols=new Set();}
-        else t.value=hdr;
+        if(hdr==null){t.value='';cfg.cols=new Set();}else t.value=hdr;
         renderSetSelector(side);
       }else{
         const cfg=S.lookupCfg[side].get(sheetName);if(!cfg)return;
@@ -1298,8 +1309,7 @@ cfgPanel.addEventListener('change',e=>{
 
   // ---- 集合匹配：列勾选 ----
   if(t.classList.contains('col-cb')){
-    const side=t.dataset.side;
-    const sheetName=t.dataset.sheet;
+    const side=t.dataset.side,sheetName=t.dataset.sheet;
     const col=parseInt(t.dataset.col,10);
     const cfg=S.setCfg[side].get(sheetName);if(!cfg)return;
     if(t.checked)cfg.cols.add(col);else cfg.cols.delete(col);
@@ -1313,55 +1323,42 @@ cfgPanel.addEventListener('change',e=>{
     return;
   }
 
-  // ---- 查值核对 · 主表：行键列 ----
+  // ---- 查值核对 / 填充 ----
   if(t.classList.contains('region-col')){
-    const sheetName=t.dataset.sheet;
-    const cfg=S.lookupCfg.A.get(sheetName);if(!cfg)return;
+    const cfg=S.lookupCfg.A.get(t.dataset.sheet);if(!cfg)return;
     cfg.regionCol=t.value===''?null:parseInt(t.value,10);
     cfg.intervalCols=new Map();
-    renderLookupA();
-    return;
+    renderLookupA();return;
   }
-
-  // ---- 查值核对 · 主表（规则表）：键列/匹配方式/值列 ----
   if(t.classList.contains('key-col')){
-    const sheetName=t.dataset.sheet;
+    const cfg=S.lookupCfg.A.get(t.dataset.sheet);if(!cfg)return;
     const idx=parseInt(t.dataset.idx,10);
-    const cfg=S.lookupCfg.A.get(sheetName);if(!cfg||!cfg.keyCols[idx])return;
+    if(!cfg.keyCols[idx])return;
     cfg.keyCols[idx].col=t.value===''?null:parseInt(t.value,10);
     return;
   }
   if(t.classList.contains('key-mode')){
-    const sheetName=t.dataset.sheet;
+    const cfg=S.lookupCfg.A.get(t.dataset.sheet);if(!cfg)return;
     const idx=parseInt(t.dataset.idx,10);
-    const cfg=S.lookupCfg.A.get(sheetName);if(!cfg||!cfg.keyCols[idx])return;
-    cfg.keyCols[idx].mode=t.value;
-    return;
+    if(!cfg.keyCols[idx])return;
+    cfg.keyCols[idx].mode=t.value;return;
   }
   if(t.classList.contains('value-col')){
-    const sheetName=t.dataset.sheet;
-    const cfg=S.lookupCfg.A.get(sheetName);if(!cfg)return;
-    cfg.valueCol=t.value===''?null:parseInt(t.value,10);
-    return;
+    const cfg=S.lookupCfg.A.get(t.dataset.sheet);if(!cfg)return;
+    cfg.valueCol=t.value===''?null:parseInt(t.value,10);return;
   }
-
-  // ---- 查值核对 · 明细表：键列/值列 ----
   if(t.classList.contains('b-key-col')){
-    const sheetName=t.dataset.sheet;
+    const cfg=S.lookupCfg.B.get(t.dataset.sheet);if(!cfg)return;
     const idx=parseInt(t.dataset.idx,10);
-    const cfg=S.lookupCfg.B.get(sheetName);if(!cfg)return;
-    cfg.keyCols[idx]=t.value===''?null:parseInt(t.value,10);
-    return;
+    cfg.keyCols[idx]=t.value===''?null:parseInt(t.value,10);return;
   }
   if(t.classList.contains('b-value-col')){
-    const sheetName=t.dataset.sheet;
-    const cfg=S.lookupCfg.B.get(sheetName);if(!cfg)return;
-    cfg.valueCol=t.value===''?null:parseInt(t.value,10);
-    return;
+    const cfg=S.lookupCfg.B.get(t.dataset.sheet);if(!cfg)return;
+    cfg.valueCol=t.value===''?null:parseInt(t.value,10);return;
   }
 });
 
-/* ---------- input 事件：区间输入框实时保存 ---------- */
+/* ---------- input：区间输入框实时保存 ---------- */
 cfgPanel.addEventListener('input',e=>{
   const t=e.target;
   if(!t.classList.contains('iv-min')&&!t.classList.contains('iv-max'))return;
@@ -1370,7 +1367,6 @@ cfgPanel.addEventListener('input',e=>{
   const col=parseInt(item.dataset.col,10);
   const cfg=S.lookupCfg.A.get(sheetName);if(!cfg)return;
 
-  // 如果还没勾选，输入时自动勾上
   let iv=cfg.intervalCols.get(col);
   if(!iv){
     const sheet=S.files.A.wb.getWorksheet(sheetName);
@@ -1378,7 +1374,6 @@ cfgPanel.addEventListener('input',e=>{
     const o=opts.find(x=>x.col===col);
     iv=parseInterval(o?o.text:'');
     cfg.intervalCols.set(col,iv);
-    // 把勾选框勾上
     const cb=item.querySelector('.iv-cb');
     if(cb)cb.checked=true;
     item.classList.add('on');
@@ -1396,15 +1391,13 @@ cfgPanel.addEventListener('input',e=>{
   else item.querySelector('.iv-edit').insertAdjacentHTML('beforeend',newSt);
 });
 
-/* ---------- click 事件：全选/清空、增删键列 ---------- */
+/* ---------- click：全选/清空、增删键列 ---------- */
 cfgPanel.addEventListener('click',e=>{
   const btn=e.target.closest('button');if(!btn)return;
   const act=btn.dataset.act;
 
-  // 集合匹配：全选/清空列
   if(act==='all'||act==='none'){
-    const side=btn.dataset.side;
-    const sheetName=btn.dataset.sheet;
+    const side=btn.dataset.side,sheetName=btn.dataset.sheet;
     const cfg=S.setCfg[side].get(sheetName);if(!cfg)return;
     if(cfg.headerRow==null){alert('请先填写表头行号');return;}
     const sheet=S.files[side].wb.getWorksheet(sheetName);
@@ -1422,10 +1415,8 @@ cfgPanel.addEventListener('click',e=>{
     return;
   }
 
-  // 查值核对：增删键列
   if(act==='add-key'){
-    const side=btn.dataset.side;
-    const sheetName=btn.dataset.sheet;
+    const side=btn.dataset.side,sheetName=btn.dataset.sheet;
     if(side==='A'){
       const cfg=S.lookupCfg.A.get(sheetName);if(!cfg)return;
       cfg.keyCols.push({col:null,mode:'exact'});
@@ -1438,8 +1429,7 @@ cfgPanel.addEventListener('click',e=>{
     return;
   }
   if(act==='del-key'){
-    const side=btn.dataset.side;
-    const sheetName=btn.dataset.sheet;
+    const side=btn.dataset.side,sheetName=btn.dataset.sheet;
     const idx=parseInt(btn.dataset.idx,10);
     if(side==='A'){
       const cfg=S.lookupCfg.A.get(sheetName);if(!cfg)return;
@@ -1453,7 +1443,7 @@ cfgPanel.addEventListener('click',e=>{
 });
 
 /* ==================================================================
-   十、执行
+   九、执行
    ================================================================== */
 async function process(){
   if(!S.files.A.wb||!S.files.B.wb){alert('请先读取文件');return;}
@@ -1473,7 +1463,6 @@ function resetOutputs(){
   S.results={set:{matched:[],onlyA:[],onlyB:[]},lookup:[]};
 }
 
-/* ---------- 集合匹配主流程 ---------- */
 async function runSet(){
   const collect=side=>{
     const map=new Map(),missing=[];
@@ -1542,15 +1531,13 @@ async function runSet(){
     document.getElementById('dl-panel').style.display='block';
     log('全部完成');
   }catch(err){
-    console.error(err);
-    log('错误：'+(err&&err.message?err.message:err));
+    console.error(err);log('错误：'+(err&&err.message?err.message:err));
     alert('处理失败，请查看日志。');
   }finally{
     btn.disabled=false;btn.textContent='开始处理';
   }
 }
 
-/* ---------- 查值核对主流程 ---------- */
 async function runLookup(){
   const missingA=[],missingB=[];
   S.lookupCfg.A.forEach((c,name)=>{
@@ -1560,8 +1547,7 @@ async function runLookup(){
       if(c.regionCol==null){missingA.push(name+'（缺行键列）');return;}
       const valid=[...c.intervalCols.values()].filter(iv=>iv.valid&&(iv.min!=null||iv.max!=null));
       if(valid.length===0){
-        const tot=c.intervalCols.size;
-        missingA.push(name+'（无有效区间列；已勾选 '+tot+' 列'+(tot?'但都未解析或未手填':'')+'）');
+        missingA.push(name+'（无有效区间列；已勾选 '+c.intervalCols.size+' 列'+(c.intervalCols.size?'但未解析或未手填':'')+'）');
         return;
       }
     }else{
@@ -1575,7 +1561,7 @@ async function runLookup(){
     if(c.headerRow==null){missingB.push(name+'（缺表头行）');return;}
     const keys=c.keyCols.filter(x=>x!=null);
     if(keys.length===0){missingB.push(name+'（未配置有效键列）');return;}
-    if(c.valueCol==null){missingB.push(name+'（未选比对值列）');return;}
+    if(c.valueCol==null){missingB.push(name+'（未选'+(S.actionMode==='fill'?'目标列':'比对值列')+'）');return;}
   });
   if(missingA.length||missingB.length){
     let m='以下配置不完整：\n\n';
@@ -1584,11 +1570,17 @@ async function runLookup(){
     alert(m);return;
   }
 
+  // 填充模式二次确认
+  if(S.actionMode==='fill'){
+    const ok=confirm('填充模式会覆盖明细表目标列的现有值，确定继续？');
+    if(!ok)return;
+  }
+
   resetOutputs();
   const btn=document.getElementById('runBtn');
   btn.disabled=true;btn.textContent='处理中…';
   try{
-    log('模式：查值核对 · 主表形态='+(S.shape==='matrix'?'矩阵表':'规则表'));
+    log('模式：查值核对 · '+(S.actionMode==='fill'?'操作=填充':'操作=核对')+' · 主表形态='+(S.shape==='matrix'?'矩阵表':'规则表'));
     log('构建主表规则 …');
     const rules=buildRules(S.files.A.wb,S.lookupCfg.A,S.shape);
     log('主表共 '+rules.length+' 条规则');
@@ -1610,47 +1602,69 @@ async function runLookup(){
 
     const tolerance=parseFloat(document.getElementById('tolerance').value)||0;
     const onMiss=document.getElementById('onMiss').value;
-    log('容差 ±'+tolerance+'；异常处理='+(onMiss==='skip'?'跳过':'标黄'));
 
-    log('逐行核对明细表 …');
-    const results=crossCheck(S.files.B.wb,S.lookupCfg.B,rules,tolerance);
+    log('逐行处理明细表 …');
+    const results=processLookup(S.files.B.wb,S.lookupCfg.B,rules,tolerance,S.actionMode);
     S.results.lookup=results;
-    const good=results.filter(r=>r.status==='一致').length;
-    const bad=results.filter(r=>r.status==='不一致').length;
-    const warn=results.length-good-bad;
-    log('核对完成：一致 '+good+'；不一致 '+bad+'；异常 '+warn+'；总计 '+results.length);
 
-    renderStatsLookup(good,bad,warn,results.length);
+    if(S.actionMode==='fill'){
+      const filled=results.filter(r=>r.status==='已填充').length;
+      const notFound=results.filter(r=>r.status==='主表未找到').length;
+      const other=results.length-filled-notFound;
+      log('填充完成：已填充 '+filled+'；未找到 '+notFound+'；其它 '+other+'；总计 '+results.length);
+      renderStatsFill(filled,notFound,other,results.length);
+    }else{
+      const good=results.filter(r=>r.status==='一致').length;
+      const bad=results.filter(r=>r.status==='不一致').length;
+      const warn=results.length-good-bad;
+      log('核对完成：一致 '+good+'；不一致 '+bad+'；异常 '+warn+'；总计 '+results.length);
+      renderStatsCheck(good,bad,warn,results.length);
+    }
 
     log('高亮明细表 …');
     highlightLookup(S.files.B.wb,results,S.lookupCfg.B,onMiss);
     if(results.length>0){
-      appendSummaryLookup(S.files.B.wb,results);
-      log('已在文件 B 追加「核对汇总」Sheet');
+      appendSummaryLookup(S.files.B.wb,results,S.actionMode);
+      log('已在文件 B 追加汇总 Sheet');
     }
 
     showSummary();
-    setCsv('csvMain','核对明细.csv',makeCsv(
-      results.map(r=>[r.sheetB,r.rowB,r.rawKeys.join(' | '),r.bNum===null?r.bValRaw:r.bNum,r.matchedLabel,r.aNum===null?r.aValRaw:r.aNum,r.status,r.diff===null?'':r.diff]),
-      ['Sheet','行号','查找键','明细值','命中规则','主表值','结果','差值']));
-    setCsv('csvOnlyA','不一致明细.csv',makeCsv(
-      results.filter(r=>r.status==='不一致').map(r=>[r.sheetB,r.rowB,r.rawKeys.join(' | '),r.bNum,r.aNum,r.diff]),
-      ['Sheet','行号','查找键','明细值','主表值','差值']));
-    setCsv('csvOnlyB','异常明细.csv',makeCsv(
-      results.filter(r=>r.status!=='一致'&&r.status!=='不一致').map(r=>[r.sheetB,r.rowB,r.rawKeys.join(' | '),r.bValRaw,r.status]),
-      ['Sheet','行号','查找键','明细值','异常说明']));
+    if(S.actionMode==='fill'){
+      setCsv('csvMain','填充明细.csv',makeCsv(
+        results.map(r=>[r.sheetB,r.rowB,r.rawKeys.join(' | '),r.matchedLabel,r.aNum===null?r.aValRaw:r.aNum,r.status]),
+        ['Sheet','行号','查找键','命中位置','填充值','状态']));
+      setCsv('csvOnlyA','未填充明细.csv',makeCsv(
+        results.filter(r=>r.status!=='已填充').map(r=>[r.sheetB,r.rowB,r.rawKeys.join(' | '),r.status]),
+        ['Sheet','行号','查找键','状态']));
+      setCsv('csvOnlyB','按状态汇总.csv',makeCsv(
+        (()=>{
+          const m=new Map();
+          for(const r of results)m.set(r.status,(m.get(r.status)||0)+1);
+          return [...m.entries()].map(([k,v])=>[k,v]);
+        })(),
+        ['状态','数量']));
+    }else{
+      setCsv('csvMain','核对明细.csv',makeCsv(
+        results.map(r=>[r.sheetB,r.rowB,r.rawKeys.join(' | '),r.bNum===null?r.bValRaw:r.bNum,r.matchedLabel,r.aNum===null?r.aValRaw:r.aNum,r.status,r.diff===null?'':r.diff]),
+        ['Sheet','行号','查找键','明细值','命中规则','主表值','结果','差值']));
+      setCsv('csvOnlyA','不一致明细.csv',makeCsv(
+        results.filter(r=>r.status==='不一致').map(r=>[r.sheetB,r.rowB,r.rawKeys.join(' | '),r.bNum,r.aNum,r.diff]),
+        ['Sheet','行号','查找键','明细值','主表值','差值']));
+      setCsv('csvOnlyB','异常明细.csv',makeCsv(
+        results.filter(r=>r.status!=='一致'&&r.status!=='不一致').map(r=>[r.sheetB,r.rowB,r.rawKeys.join(' | '),r.bValRaw,r.status]),
+        ['Sheet','行号','查找键','明细值','异常说明']));
+    }
 
     document.getElementById('dlNote').innerHTML=
       '文件 A（主表）原样导出，仅清除条件格式。<br>'+
-      '文件 B（明细表）已按核对结果高亮，并追加「核对汇总」Sheet。';
+      '文件 B（明细表）'+(S.actionMode==='fill'?'已填入值':'已按核对结果高亮')+'，并追加汇总 Sheet。';
     const dl=document.getElementById('downloads');dl.innerHTML='';
-    mkDownload(dl,S.files.A.wb,S.files.A.file,'文件 A','（主表）','核对');
-    mkDownload(dl,S.files.B.wb,S.files.B.file,'文件 B','（已高亮）','核对');
+    mkDownload(dl,S.files.A.wb,S.files.A.file,'文件 A','（主表）',S.actionMode==='fill'?'填充':'核对');
+    mkDownload(dl,S.files.B.wb,S.files.B.file,'文件 B',S.actionMode==='fill'?'（已填充）':'（已高亮）',S.actionMode==='fill'?'填充':'核对');
     document.getElementById('dl-panel').style.display='block';
     log('全部完成');
   }catch(err){
-    console.error(err);
-    log('错误：'+(err&&err.message?err.message:err));
+    console.error(err);log('错误：'+(err&&err.message?err.message:err));
     alert('处理失败，请查看日志。');
   }finally{
     btn.disabled=false;btn.textContent='开始处理';
@@ -1671,7 +1685,7 @@ function mkDownload(container,wb,file,tag,suffix,suffix2){
 }
 
 /* ==================================================================
-   十一、结果渲染
+   十、结果渲染
    ================================================================== */
 function renderStatsSet(matched,onlyA,onlyB){
   const s=document.getElementById('stats');
@@ -1682,7 +1696,16 @@ function renderStatsSet(matched,onlyA,onlyB){
     '<div class="stat warn"><div class="num">'+onlyB.length+'</div><div class="cap">仅文件 B 有</div></div>'+
     '<div class="stat"><div class="num" id="stCells">0</div><div class="cap">高亮的行数</div></div>';
 }
-function renderStatsLookup(good,bad,warn,total){
+function renderStatsFill(filled,notFound,other,total){
+  const s=document.getElementById('stats');
+  s.className='on';
+  s.innerHTML=
+    '<div class="stat good"><div class="num">'+filled+'</div><div class="cap">已填充</div></div>'+
+    '<div class="stat warn"><div class="num">'+notFound+'</div><div class="cap">主表未找到</div></div>'+
+    '<div class="stat warn"><div class="num">'+other+'</div><div class="cap">其它问题</div></div>'+
+    '<div class="stat"><div class="num">'+total+'</div><div class="cap">总记录数</div></div>';
+}
+function renderStatsCheck(good,bad,warn,total){
   const s=document.getElementById('stats');
   s.className='on';
   s.innerHTML=
@@ -1743,12 +1766,22 @@ function renderSummaryTable(){
     body.innerHTML=h;
     document.getElementById('sumCount').textContent='共 '+rows.length+' 个匹配键'+(rows.length>MAX?'（仅渲染前 '+MAX+' 行）':'');
   }else{
-    head.innerHTML='<tr>'+
-      '<th onclick="sortSummary(\'rowB\')">Sheet!行号 <span id="sk-rowB"></span></th>'+
-      '<th>查找键</th><th>明细值</th>'+
-      '<th>命中规则</th><th>主表值</th>'+
-      '<th onclick="sortSummary(\'status\')">结果 <span id="sk-status"></span></th>'+
-      '<th>差值</th></tr>';
+    const isFill=S.actionMode==='fill';
+    if(isFill){
+      head.innerHTML='<tr>'+
+        '<th onclick="sortSummary(\'rowB\')">Sheet!行号 <span id="sk-rowB"></span></th>'+
+        '<th>查找键</th>'+
+        '<th>命中位置</th>'+
+        '<th>填充值</th>'+
+        '<th onclick="sortSummary(\'status\')">状态 <span id="sk-status"></span></th></tr>';
+    }else{
+      head.innerHTML='<tr>'+
+        '<th onclick="sortSummary(\'rowB\')">Sheet!行号 <span id="sk-rowB"></span></th>'+
+        '<th>查找键</th><th>明细值</th>'+
+        '<th>命中规则</th><th>主表值</th>'+
+        '<th onclick="sortSummary(\'status\')">结果 <span id="sk-status"></span></th>'+
+        '<th>差值</th></tr>';
+    }
     let rows=S.results.lookup.filter(r=>{
       if(!filter)return true;
       return normalize(r.rawKeys.join(' ')+' '+r.bValRaw+' '+r.status+' '+r.matchedLabel).includes(filter);
@@ -1768,16 +1801,25 @@ function renderSummaryTable(){
     for(let i=0;i<Math.min(rows.length,MAX);i++){
       const m=rows[i];
       let cls='row-warn',sc='status-warn';
-      if(m.status==='一致'){cls='row-good';sc='status-good';}
+      if(m.status==='一致'||m.status==='已填充'){cls='row-good';sc='status-good';}
       else if(m.status==='不一致'){cls='row-bad';sc='status-bad';}
-      h+='<tr class="'+cls+'">'+
-        '<td>'+esc(m.sheetB)+'!R'+m.rowB+'</td>'+
-        '<td title="'+esc(m.rawKeys.join(' | '))+'">'+esc(m.rawKeys.join(' | '))+'</td>'+
-        '<td>'+esc(m.bValRaw)+'</td>'+
-        '<td>'+esc(m.matchedLabel||'—')+'</td>'+
-        '<td>'+(m.aNum===null?esc(m.aValRaw||'—'):m.aNum)+'</td>'+
-        '<td class="'+sc+'">'+esc(m.status)+'</td>'+
-        '<td>'+(m.diff===null?'—':(Math.round(m.diff*10000)/10000))+'</td></tr>';
+      if(isFill){
+        h+='<tr class="'+cls+'">'+
+          '<td>'+esc(m.sheetB)+'!R'+m.rowB+'</td>'+
+          '<td title="'+esc(m.rawKeys.join(' | '))+'">'+esc(m.rawKeys.join(' | '))+'</td>'+
+          '<td>'+esc(m.matchedLabel||'—')+'</td>'+
+          '<td>'+(m.aNum===null?esc(m.aValRaw||'—'):m.aNum)+'</td>'+
+          '<td class="'+sc+'">'+esc(m.status)+'</td></tr>';
+      }else{
+        h+='<tr class="'+cls+'">'+
+          '<td>'+esc(m.sheetB)+'!R'+m.rowB+'</td>'+
+          '<td title="'+esc(m.rawKeys.join(' | '))+'">'+esc(m.rawKeys.join(' | '))+'</td>'+
+          '<td>'+esc(m.bValRaw)+'</td>'+
+          '<td>'+esc(m.matchedLabel||'—')+'</td>'+
+          '<td>'+(m.aNum===null?esc(m.aValRaw||'—'):m.aNum)+'</td>'+
+          '<td class="'+sc+'">'+esc(m.status)+'</td>'+
+          '<td>'+(m.diff===null?'—':(Math.round(m.diff*10000)/10000))+'</td></tr>';
+      }
     }
     body.innerHTML=h;
     document.getElementById('sumCount').textContent='共 '+rows.length+' 条'+(rows.length>MAX?'（仅渲染前 '+MAX+' 行）':'');
